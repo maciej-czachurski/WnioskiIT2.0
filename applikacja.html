@@ -1,0 +1,5985 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>wnioskiIT — Portal obsługi IT</title>
+
+<script>
+(function () {
+  const savedTheme = localStorage.getItem("wnioskiIT-theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme =
+    savedTheme || (prefersDark ? "dark" : "light");
+})();
+</script>
+
+<style>
+:root {
+  color-scheme: light;
+
+  --brand: #0f6cbd;
+  --brand-hover: #115ea3;
+  --brand-pressed: #0c3b5e;
+  --brand-soft: #ebf3fc;
+  --brand-border: #b4d6f5;
+
+  --success: #107c10;
+  --success-bg: #f1faf1;
+  --warning: #8a5400;
+  --warning-bg: #fff8e8;
+  --danger: #c50f1f;
+  --danger-bg: #fdf3f4;
+  --purple: #5c2e91;
+  --purple-bg: #f5f0fa;
+
+  --canvas: #f5f5f5;
+  --canvas-subtle: #fafafa;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-hover: #f5f5f5;
+  --surface-pressed: #ebebeb;
+
+  --text: #242424;
+  --text-secondary: #616161;
+  --text-muted: #8a8886;
+
+  --border: #e0e0e0;
+  --border-strong: #bdbdbd;
+
+  --shadow-2: 0 1px 3px rgba(0, 0, 0, .08);
+  --shadow-8: 0 4px 12px rgba(0, 0, 0, .1);
+  --shadow-16: 0 18px 50px rgba(0, 0, 0, .22);
+
+  --radius: 8px;
+  --radius-lg: 12px;
+  --sidebar-width: 252px;
+  --header-height: 64px;
+
+  --font:
+    "Segoe UI Variable",
+    "Segoe UI",
+    -apple-system,
+    BlinkMacSystemFont,
+    Arial,
+    sans-serif;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --brand: #479ef5;
+  --brand-hover: #62abf5;
+  --brand-pressed: #77b7f7;
+  --brand-soft: #172f49;
+  --brand-border: #285780;
+
+  --success: #54b054;
+  --success-bg: #173117;
+  --warning: #f2c661;
+  --warning-bg: #3a2c12;
+  --danger: #f1707b;
+  --danger-bg: #3b1d21;
+  --purple: #c6a7e9;
+  --purple-bg: #30233e;
+
+  --canvas: #1b1a19;
+  --canvas-subtle: #201f1e;
+  --surface: #292827;
+  --surface-raised: #323130;
+  --surface-hover: #383736;
+  --surface-pressed: #41403f;
+
+  --text: #ffffff;
+  --text-secondary: #d2d0ce;
+  --text-muted: #a19f9d;
+
+  --border: #3b3a39;
+  --border-strong: #605e5c;
+
+  --shadow-2: 0 1px 4px rgba(0, 0, 0, .38);
+  --shadow-8: 0 6px 18px rgba(0, 0, 0, .4);
+  --shadow-16: 0 20px 55px rgba(0, 0, 0, .65);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--text);
+  background: var(--canvas);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================================================
+   GŁÓWNY UKŁAD
+   ========================================================= */
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+}
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 60;
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.main {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.content {
+  max-width: 1500px;
+  margin: auto;
+  padding: 28px 30px 70px;
+}
+
+/* =========================================================
+   PANEL BOCZNY
+   ========================================================= */
+
+.brand {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 17px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: var(--brand);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+}
+
+.brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.brand-name span {
+  color: var(--brand);
+}
+
+.brand-subtitle {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 8px;
+}
+
+.nav-title {
+  margin: 12px 11px 6px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.nav-item {
+  width: 100%;
+  min-height: 40px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 2px 0;
+  padding: 0 12px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  text-align: left;
+}
+
+.nav-item:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.nav-item.active {
+  color: var(--brand);
+  background: var(--brand-soft);
+  font-weight: 600;
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 3px;
+  height: 20px;
+  background: var(--brand);
+  border-radius: 0 3px 3px 0;
+}
+
+.nav-label {
+  flex: 1;
+}
+
+.nav-count {
+  min-width: 21px;
+  height: 21px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-radius: 11px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sidebar-footer {
+  padding: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.profile {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  text-align: left;
+}
+
+.profile:hover {
+  background: var(--surface-hover);
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #ffffff;
+  background: var(--brand);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-info {
+  min-width: 0;
+  flex: 1;
+  display: block;
+}
+
+.profile-name {
+  display: block;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-role {
+  display: block;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   GÓRNY PASEK
+   ========================================================= */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+}
+
+.menu-button {
+  display: none !important;
+}
+
+.search {
+  width: min(460px, 100%);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
+
+.search:focus-within {
+  border-color: var(--brand);
+  box-shadow: inset 0 -2px 0 var(--brand);
+}
+
+.search input {
+  min-width: 0;
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.search input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-shortcut {
+  padding: 2px 6px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.icon-button:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.notification-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  background: var(--danger);
+  border: 1.5px solid var(--surface);
+  border-radius: 50%;
+}
+
+/* =========================================================
+   PRZYCISKI
+   ========================================================= */
+
+.btn {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: var(--surface-hover);
+}
+
+.btn:active {
+  background: var(--surface-pressed);
+}
+
+.btn.primary {
+  color: #ffffff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.btn.primary:hover {
+  background: var(--brand-hover);
+  border-color: var(--brand-hover);
+}
+
+.btn.subtle {
+  background: transparent;
+  border-color: transparent;
+}
+
+.btn.danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn .icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* =========================================================
+   NAGŁÓWEK STRONY
+   ========================================================= */
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.breadcrumbs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.breadcrumbs .current {
+  color: var(--text);
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+
+.page-description {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+}
+
+.page-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* =========================================================
+   WSKAŹNIKI
+   ========================================================= */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.metric {
+  padding: 17px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+}
+
+.metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.metric-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: var(--radius);
+}
+
+.metric.warning .metric-icon {
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.metric.danger .metric-icon {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.metric.success .metric-icon {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.metric-value {
+  margin-top: 10px;
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.metric-caption {
+  margin-top: 7px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* =========================================================
+   KARTY
+   ========================================================= */
+
+.card {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+}
+
+.card-header {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-header-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.card-description {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, .7fr);
+  gap: 18px;
+}
+
+/* =========================================================
+   KATALOG USŁUG
+   ========================================================= */
+
+.services {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 16px;
+}
+
+.service {
+  min-height: 118px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: left;
+  transition:
+    background .15s,
+    border-color .15s,
+    transform .15s,
+    box-shadow .15s;
+}
+
+.service:hover {
+  background: var(--surface-hover);
+  border-color: var(--brand-border);
+  box-shadow: 0 0 0 1px var(--brand-border);
+  transform: translateY(-1px);
+}
+
+.service-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: var(--radius);
+}
+
+.service-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.service-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.service-description {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+}
+
+.service-meta {
+  display: block;
+  margin-top: 7px;
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
+
+.service-arrow {
+  align-self: center;
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   AKTYWNOŚĆ I SLA
+   ========================================================= */
+
+.activity-list {
+  padding: 4px 18px 12px;
+}
+
+.activity {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.activity:last-child {
+  border-bottom: 0;
+}
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  margin-top: 5px;
+  background: var(--brand);
+  border-radius: 50%;
+}
+
+.activity-dot.success {
+  background: var(--success);
+}
+
+.activity-dot.warning {
+  background: var(--warning);
+}
+
+.activity-title {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.activity-meta {
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.sla-box {
+  margin: 0 18px 18px;
+  padding: 13px;
+  background: var(--canvas-subtle);
+  border-radius: var(--radius);
+}
+
+.sla-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+}
+
+.progress {
+  height: 6px;
+  margin-top: 8px;
+  overflow: hidden;
+  background: var(--surface-pressed);
+  border-radius: 5px;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  border-radius: 5px;
+}
+
+.progress.warning span {
+  background: var(--warning);
+}
+
+.progress.danger span {
+  background: var(--danger);
+}
+
+/* =========================================================
+   DOLNY PANEL
+   ========================================================= */
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.request-list,
+.approval-list {
+  padding: 4px 18px 12px;
+}
+
+.request-row,
+.approval-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.request-row:last-child,
+.approval-row:last-child {
+  border-bottom: 0;
+}
+
+.request-row {
+  cursor: pointer;
+}
+
+.request-row:hover {
+  color: var(--brand);
+}
+
+.request-icon,
+.approval-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: var(--radius);
+}
+
+.approval-icon {
+  color: var(--purple);
+  background: var(--purple-bg);
+}
+
+.request-body,
+.approval-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.request-title,
+.approval-title {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.request-meta,
+.approval-meta {
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+}
+
+/* =========================================================
+   ETYKIETY
+   ========================================================= */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 0 9px;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.badge.success {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.badge.warning {
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.badge.danger {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.badge.neutral {
+  color: var(--text-secondary);
+  background: var(--surface-pressed);
+}
+
+/* =========================================================
+   REJESTR WNIOSKÓW
+   ========================================================= */
+
+.requests-card {
+  margin-top: 18px;
+  scroll-margin-top: 80px;
+}
+
+.command-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--canvas-subtle);
+  border-bottom: 1px solid var(--border);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.segmented button {
+  min-height: 30px;
+  padding: 0 11px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.segmented button:hover {
+  background: var(--surface-hover);
+}
+
+.segmented button.active {
+  color: var(--brand);
+  background: var(--brand-soft);
+  font-weight: 600;
+}
+
+.table-search {
+  width: 220px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
+
+.table-search input {
+  min-width: 0;
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 940px;
+  border-collapse: collapse;
+}
+
+th {
+  padding: 10px 14px;
+  color: var(--text-secondary);
+  background: var(--canvas-subtle);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.request-code {
+  color: var(--brand);
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.request-category {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.table-footer {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+/* =========================================================
+   OKNA POPOVER
+   ========================================================= */
+
+.popover {
+  position: fixed;
+  top: 56px;
+  right: 62px;
+  z-index: 90;
+  width: min(390px, calc(100vw - 24px));
+  display: none;
+  overflow: hidden;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-16);
+}
+
+.popover.show {
+  display: block;
+}
+
+.popover-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.popover-header strong {
+  flex: 1;
+}
+
+.notification {
+  display: flex;
+  gap: 11px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notification:last-child {
+  border-bottom: 0;
+}
+
+.notification:hover {
+  background: var(--surface-hover);
+}
+
+.notification-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: 50%;
+}
+
+.notification-icon.warning {
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.notification-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.notification-text {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.notification-time {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.user-menu {
+  right: 20px;
+  width: 260px;
+}
+
+.user-menu-head {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+}
+
+.user-menu-item:hover {
+  background: var(--surface-hover);
+}
+
+/* =========================================================
+   DIALOG I KREATOR
+   ========================================================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .46);
+  backdrop-filter: blur(2px);
+}
+
+.overlay.show {
+  display: flex;
+}
+
+.dialog {
+  width: min(900px, 100%);
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-16);
+}
+
+.dialog-header {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dialog-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: var(--radius);
+}
+
+.dialog-heading {
+  min-width: 0;
+  flex: 1;
+}
+
+.dialog-title {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.dialog-subtitle {
+  color: var(--text-secondary);
+  font-size: 11.5px;
+}
+
+.dialog-body {
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 20px;
+  background: var(--canvas-subtle);
+  border-top: 1px solid var(--border);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.step {
+  position: relative;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.step::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  right: -50%;
+  height: 1px;
+  background: var(--border);
+}
+
+.step:last-child::before {
+  display: none;
+}
+
+.step-circle {
+  width: 27px;
+  height: 27px;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 5px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  font-weight: 600;
+}
+
+.step.active {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.step.active .step-circle,
+.step.complete .step-circle {
+  color: #ffffff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.step.complete::before {
+  background: var(--brand);
+}
+
+.section-heading {
+  margin: 3px 0 14px;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-field.full {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.required {
+  color: var(--danger);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  outline: 0;
+}
+
+.input,
+.select {
+  height: 36px;
+  padding: 0 10px;
+}
+
+.textarea {
+  min-height: 105px;
+  padding: 9px 10px;
+  resize: vertical;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--brand);
+  box-shadow: inset 0 -2px 0 var(--brand);
+}
+
+.field-hint {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.checkbox-row {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand);
+}
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 11px 12px;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-border);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.message.warning {
+  color: var(--warning);
+  background: var(--warning-bg);
+  border-color: color-mix(in srgb, var(--warning) 35%, transparent);
+}
+
+.dynamic-section {
+  margin-top: 18px;
+  padding-top: 17px;
+  border-top: 1px solid var(--border);
+}
+
+.dynamic-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.dynamic-fields .full {
+  grid-column: 1 / -1;
+}
+
+.approval-path {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.approval-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.approval-number {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #ffffff;
+  background: var(--brand);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.approval-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.approval-description {
+  color: var(--text-secondary);
+  font-size: 10.5px;
+}
+
+.dropzone {
+  min-height: 88px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 14px;
+  color: var(--text-secondary);
+  background: var(--canvas-subtle);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.dropzone:hover,
+.dropzone.dragging {
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-color: var(--brand);
+}
+
+.dropzone input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 9px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 11px;
+}
+
+.file-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-remove {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--danger);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.summary-item {
+  padding: 12px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.summary-item.full {
+  grid-column: 1 / -1;
+}
+
+.summary-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.summary-value {
+  margin-top: 3px;
+  font-weight: 600;
+  white-space: pre-wrap;
+}
+
+.summary-dynamic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.summary-dynamic .summary-item:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* =========================================================
+   SZCZEGÓŁY WNIOSKU
+   ========================================================= */
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  background: rgba(0, 0, 0, .34);
+}
+
+.drawer-backdrop.show {
+  display: block;
+}
+
+.drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 110;
+  width: min(570px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  box-shadow: var(--shadow-16);
+  transform: translateX(105%);
+  transition: transform .2s;
+}
+
+.drawer.show {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-header-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.drawer-caption {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.drawer-title {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 14px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-tab {
+  min-height: 42px;
+  padding: 0 12px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.drawer-tab.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  font-weight: 600;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px;
+}
+
+.drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 13px 18px;
+  background: var(--canvas-subtle);
+  border-top: 1px solid var(--border);
+}
+
+.detail-code {
+  color: var(--brand);
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.detail-title {
+  margin: 6px 0 5px;
+  font-size: 21px;
+  font-weight: 650;
+}
+
+.detail-meta {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.detail-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+  margin-top: 20px;
+}
+
+.detail-field {
+  padding: 11px;
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.detail-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.detail-value {
+  margin-top: 3px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: pre-wrap;
+}
+
+.section-title {
+  margin: 24px 0 10px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.description-box {
+  padding: 14px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  gap: 13px;
+  padding-bottom: 18px;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: -2px;
+  left: 5px;
+  width: 1px;
+  background: var(--border);
+}
+
+.timeline-item:last-child::before {
+  display: none;
+}
+
+.timeline-dot {
+  width: 11px;
+  height: 11px;
+  z-index: 1;
+  flex-shrink: 0;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 2px solid var(--brand);
+  border-radius: 50%;
+}
+
+.timeline-item.complete .timeline-dot {
+  background: var(--brand);
+}
+
+.timeline-title {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.timeline-meta {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+/* =========================================================
+   PALETA POLECEŃ I TOAST
+   ========================================================= */
+
+.command-overlay {
+  z-index: 150;
+  align-items: flex-start;
+  padding-top: 12vh;
+}
+
+.command-dialog {
+  width: min(620px, calc(100% - 24px));
+}
+
+.command-input {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.command-input input {
+  min-width: 0;
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 15px;
+}
+
+.command-results {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.command-section {
+  padding: 7px 9px;
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.command-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  text-align: left;
+}
+
+.command-item:hover {
+  background: var(--surface-hover);
+}
+
+.command-item span {
+  flex: 1;
+}
+
+.command-key {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  z-index: 200;
+  min-width: 290px;
+  max-width: calc(100vw - 30px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-16);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: .2s;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toast .icon {
+  color: var(--success);
+}
+
+.mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: none;
+  padding: 0;
+  background: rgba(0, 0, 0, .35);
+  border: 0;
+}
+
+/* =========================================================
+   RESPONSYWNOŚĆ
+   ========================================================= */
+
+@media (max-width: 1120px) {
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-grid,
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .app {
+    display: block;
+  }
+
+  .sidebar {
+    width: min(290px, 86vw);
+    transform: translateX(-105%);
+    transition: transform .2s;
+    box-shadow: var(--shadow-16);
+  }
+
+  .sidebar.show {
+    transform: translateX(0);
+  }
+
+  .mobile-backdrop.show {
+    display: block;
+  }
+
+  .main {
+    width: 100%;
+  }
+
+  .menu-button {
+    display: grid !important;
+  }
+
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .desktop-profile,
+  .search-shortcut {
+    display: none;
+  }
+
+  .content {
+    padding: 20px 14px 50px;
+  }
+
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .page-actions .btn {
+    flex: 1;
+  }
+
+  .command-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .command-bar > .spacer {
+    display: none;
+  }
+
+  .table-search {
+    width: 100%;
+  }
+
+  .segmented {
+    overflow-x: auto;
+  }
+
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .dialog {
+    width: 100%;
+    max-height: 96vh;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .form-grid,
+  .dynamic-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .form-field.full,
+  .dynamic-fields .full {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .services {
+    grid-template-columns: 1fr;
+  }
+
+  .search {
+    width: 40px;
+  }
+
+  .search input,
+  .search-shortcut {
+    display: none;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .metric {
+    padding: 13px;
+  }
+
+  .metric-value {
+    font-size: 23px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .detail-grid,
+  .summary,
+  .summary-dynamic {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-item.full,
+  .summary-dynamic .summary-item:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+
+  .dialog-footer {
+    flex-wrap: wrap;
+  }
+
+  .dialog-footer .btn {
+    flex: 1;
+  }
+
+  .popover {
+    right: 12px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- =======================================================
+     DEFINICJE IKON SVG
+     ======================================================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24">
+      <path d="M3 11.5 12 4l9 7.5M5 10v10h5v-6h4v6h5V10"/>
+    </symbol>
+
+    <symbol id="i-file" viewBox="0 0 24 24">
+      <path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/>
+    </symbol>
+
+    <symbol id="i-plus" viewBox="0 0 24 24">
+      <path d="M12 5v14M5 12h14"/>
+    </symbol>
+
+    <symbol id="i-grid" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="14" y="14" width="7" height="7" rx="1"/>
+    </symbol>
+
+    <symbol id="i-help" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M9.7 9a2.5 2.5 0 1 1 4 2c-1 .7-1.7 1.2-1.7 2.5M12 17h.01"/>
+    </symbol>
+
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="m20 20-4-4"/>
+    </symbol>
+
+    <symbol id="i-bell" viewBox="0 0 24 24">
+      <path d="M18 9a6 6 0 0 0-12 0c0 6-3 7-3 8h18c0-1-3-2-3-8M10 21h4"/>
+    </symbol>
+
+    <symbol id="i-moon" viewBox="0 0 24 24">
+      <path d="M20.5 15.3A8.5 8.5 0 0 1 8.7 3.5 9 9 0 1 0 20.5 15.3z"/>
+    </symbol>
+
+    <symbol id="i-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>
+    </symbol>
+
+    <symbol id="i-menu" viewBox="0 0 24 24">
+      <path d="M4 6h16M4 12h16M4 18h16"/>
+    </symbol>
+
+    <symbol id="i-chevron" viewBox="0 0 24 24">
+      <path d="m9 6 6 6-6 6"/>
+    </symbol>
+
+    <symbol id="i-cart" viewBox="0 0 24 24">
+      <path d="M3 4h2l2 11h10l3-8H6M9 20h.01M17 20h.01"/>
+    </symbol>
+
+    <symbol id="i-key" viewBox="0 0 24 24">
+      <circle cx="8" cy="15" r="4"/>
+      <path d="m11 12 8-8M16 7l2 2"/>
+    </symbol>
+
+    <symbol id="i-house" viewBox="0 0 24 24">
+      <path d="M3 11.5 12 4l9 7.5M5 10v10h14V10M9 20v-6h6v6"/>
+    </symbol>
+
+    <symbol id="i-database" viewBox="0 0 24 24">
+      <ellipse cx="12" cy="5" rx="8" ry="3"/>
+      <path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>
+    </symbol>
+
+    <symbol id="i-server" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="7" rx="2"/>
+      <rect x="3" y="14" width="18" height="7" rx="2"/>
+      <path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/>
+    </symbol>
+
+    <symbol id="i-share" viewBox="0 0 24 24">
+      <circle cx="18" cy="5" r="3"/>
+      <circle cx="6" cy="12" r="3"/>
+      <circle cx="18" cy="19" r="3"/>
+      <path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4"/>
+    </symbol>
+
+    <symbol id="i-person" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M5 21a7 7 0 0 1 14 0"/>
+    </symbol>
+
+    <symbol id="i-clock" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M12 7v5l3 2"/>
+    </symbol>
+
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12 4 4L19 6"/>
+    </symbol>
+
+    <symbol id="i-warning" viewBox="0 0 24 24">
+      <path d="M12 3 2 21h20zM12 9v5M12 18h.01"/>
+    </symbol>
+
+    <symbol id="i-refresh" viewBox="0 0 24 24">
+      <path d="M20 7v5h-5M19 12a7 7 0 1 0-2 5"/>
+    </symbol>
+
+    <symbol id="i-filter" viewBox="0 0 24 24">
+      <path d="M4 5h16l-6 7v6l-4 2v-8z"/>
+    </symbol>
+
+    <symbol id="i-export" viewBox="0 0 24 24">
+      <path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7"/>
+    </symbol>
+
+    <symbol id="i-attach" viewBox="0 0 24 24">
+      <path d="m8 12 6-6a4 4 0 0 1 6 6l-8 8a6 6 0 0 1-8-8l8-8"/>
+    </symbol>
+
+    <symbol id="i-info" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M12 11v6M12 7h.01"/>
+    </symbol>
+
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="M18 6 6 18M6 6l12 12"/>
+    </symbol>
+
+    <symbol id="i-comment" viewBox="0 0 24 24">
+      <path d="M4 5h16v12H9l-5 4z"/>
+    </symbol>
+
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6zM9 12l2 2 4-4"/>
+    </symbol>
+
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 3v12m-5-5 5 5 5-5M5 20h14"/>
+    </symbol>
+
+    <symbol id="i-settings" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19 13.5v-3l-2-.7-.7-1.7.9-1.9-2.1-2.1-1.9.9-1.7-.7L10.5 2h-3l-.7 2.3-1.7.7-1.9-.9-2.1 2.1.9 1.9-.7 1.7-2 .7v3l2 .7.7 1.7-.9 1.9 2.1 2.1 1.9-.9 1.7.7.7 2.3h3l.7-2.3 1.7-.7 1.9.9 2.1-2.1-.9-1.9.7-1.7z"
+            transform="translate(2) scale(.85)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- =======================================================
+     APLIKACJA
+     ======================================================= -->
+<div class="app">
+
+  <button
+    class="mobile-backdrop"
+    id="mobileBackdrop"
+    type="button"
+    aria-label="Zamknij menu"
+    onclick="closeMenu()">
+  </button>
+
+  <!-- Panel boczny -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg class="icon"><use href="#i-file"/></svg>
+      </div>
+
+      <div>
+        <div class="brand-name">wnioski<span>IT</span></div>
+        <div class="brand-subtitle">Portal obsługi IT</div>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="Menu główne">
+      <div class="nav-title">Menu główne</div>
+
+      <button
+        class="nav-item active"
+        type="button"
+        onclick="activateNav(this); goTo('dashboard')">
+        <svg class="icon"><use href="#i-home"/></svg>
+        <span class="nav-label">Pulpit</span>
+      </button>
+
+      <button
+        class="nav-item"
+        type="button"
+        onclick="activateNav(this); goTo('requests')">
+        <svg class="icon"><use href="#i-file"/></svg>
+        <span class="nav-label">Moje wnioski</span>
+        <span class="nav-count" id="navRequestCount">3</span>
+      </button>
+
+      <button
+        class="nav-item"
+        type="button"
+        onclick="activateNav(this); openRequest()">
+        <svg class="icon"><use href="#i-plus"/></svg>
+        <span class="nav-label">Nowy wniosek</span>
+      </button>
+
+      <button
+        class="nav-item"
+        type="button"
+        onclick="activateNav(this); goTo('catalog')">
+        <svg class="icon"><use href="#i-grid"/></svg>
+        <span class="nav-label">Katalog usług</span>
+      </button>
+
+      <div class="nav-title">Zarządzanie</div>
+
+      <button
+        class="nav-item"
+        type="button"
+        onclick="activateNav(this); goTo('approvals')">
+        <svg class="icon"><use href="#i-shield"/></svg>
+        <span class="nav-label">Moje akceptacje</span>
+        <span class="nav-count" id="approvalNavCount">2</span>
+      </button>
+
+      <button
+        class="nav-item"
+        type="button"
+        onclick="showToast('Otwarto raporty i analizy')">
+        <svg class="icon"><use href="#i-grid"/></svg>
+        <span class="nav-label">Raporty i analizy</span>
+      </button>
+
+      <div class="nav-title">Pomoc</div>
+
+      <button
+        class="nav-item"
+        type="button"
+        onclick="showToast('Otwarto bazę wiedzy')">
+        <svg class="icon"><use href="#i-help"/></svg>
+        <span class="nav-label">Baza wiedzy</span>
+      </button>
+
+      <button
+        class="nav-item"
+        type="button"
+        onclick="showToast('Service Desk: wew. 1234')">
+        <svg class="icon"><use href="#i-comment"/></svg>
+        <span class="nav-label">Kontakt z IT</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="profile" type="button" onclick="toggleUserMenu(event)">
+        <span class="avatar">JK</span>
+
+        <span class="profile-info">
+          <span class="profile-name">Jan Kowalski</span>
+          <span class="profile-role">Pracownik · Wydział W2</span>
+        </span>
+
+        <svg class="icon"><use href="#i-chevron"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Główna zawartość -->
+  <main class="main">
+
+    <!-- Górny pasek -->
+    <header class="topbar">
+      <button
+        class="icon-button menu-button"
+        type="button"
+        aria-label="Otwórz menu"
+        onclick="openMenu()">
+        <svg class="icon"><use href="#i-menu"/></svg>
+      </button>
+
+      <div
+        class="search"
+        role="button"
+        tabindex="0"
+        aria-label="Otwórz wyszukiwanie"
+        onclick="openCommandPalette()"
+        onkeydown="if(event.key === 'Enter') openCommandPalette()">
+
+        <svg class="icon"><use href="#i-search"/></svg>
+
+        <input
+          type="search"
+          placeholder="Szukaj lub wpisz polecenie…"
+          aria-label="Szukaj"
+          readonly>
+
+        <span class="search-shortcut">Ctrl K</span>
+      </div>
+
+      <div class="spacer"></div>
+
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Zmień motyw"
+        onclick="toggleTheme()">
+        <svg class="icon" id="themeIcon">
+          <use id="themeIconUse" href="#i-moon"/>
+        </svg>
+      </button>
+
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Powiadomienia"
+        onclick="toggleNotifications(event)">
+        <svg class="icon"><use href="#i-bell"/></svg>
+        <span class="notification-dot" id="notificationDot"></span>
+      </button>
+
+      <button
+        class="profile desktop-profile"
+        type="button"
+        onclick="toggleUserMenu(event)">
+        <span class="avatar">JK</span>
+
+        <span class="profile-info">
+          <span class="profile-name">Jan Kowalski</span>
+          <span class="profile-role">Wydział W2</span>
+        </span>
+      </button>
+    </header>
+
+    <div class="content" id="dashboard">
+
+      <!-- Nagłówek -->
+      <section class="page-header">
+        <div>
+          <div class="breadcrumbs">
+            <span>wnioskiIT</span>
+            <span>/</span>
+            <span class="current">Pulpit</span>
+          </div>
+
+          <h1>Dzień dobry, Jan</h1>
+
+          <p class="page-description">
+            Złóż nowy wniosek IT, sprawdź postęp realizacji
+            i zarządzaj akceptacjami.
+          </p>
+        </div>
+
+        <div class="page-actions">
+          <button class="btn" type="button" onclick="refreshData()">
+            <svg class="icon"><use href="#i-refresh"/></svg>
+            Odśwież
+          </button>
+
+          <button class="btn primary" type="button" onclick="openRequest()">
+            <svg class="icon"><use href="#i-plus"/></svg>
+            Nowy wniosek
+          </button>
+        </div>
+      </section>
+
+      <!-- Wskaźniki -->
+      <section class="metrics" aria-label="Podsumowanie wniosków">
+        <article class="metric">
+          <div class="metric-top">
+            <span>Wszystkie wnioski</span>
+
+            <span class="metric-icon">
+              <svg class="icon"><use href="#i-file"/></svg>
+            </span>
+          </div>
+
+          <div class="metric-value" id="metricAll">12</div>
+          <div class="metric-caption">↑ 2 w tym miesiącu</div>
+        </article>
+
+        <article class="metric warning">
+          <div class="metric-top">
+            <span>W realizacji</span>
+
+            <span class="metric-icon">
+              <svg class="icon"><use href="#i-clock"/></svg>
+            </span>
+          </div>
+
+          <div class="metric-value" id="metricOpen">3</div>
+          <div class="metric-caption">2 zgodne z SLA · 1 zagrożony</div>
+        </article>
+
+        <article class="metric danger">
+          <div class="metric-top">
+            <span>Wymagają działania</span>
+
+            <span class="metric-icon">
+              <svg class="icon"><use href="#i-warning"/></svg>
+            </span>
+          </div>
+
+          <div class="metric-value" id="metricAction">1</div>
+          <div class="metric-caption">Uzupełnij informacje do 14:30</div>
+        </article>
+
+        <article class="metric success">
+          <div class="metric-top">
+            <span>Zakończone</span>
+
+            <span class="metric-icon">
+              <svg class="icon"><use href="#i-check"/></svg>
+            </span>
+          </div>
+
+          <div class="metric-value" id="metricDone">8</div>
+          <div class="metric-caption">96% rozwiązanych w SLA</div>
+        </article>
+      </section>
+
+      <!-- Katalog i aktywność -->
+      <section class="dashboard-grid">
+
+        <!-- Rozszerzony katalog sześciu usług -->
+        <article class="card" id="catalog">
+          <div class="card-header">
+            <div class="card-header-text">
+              <h2 class="card-title">Katalog usług IT</h2>
+
+              <div class="card-description">
+                Wybierz rodzaj sprawy, aby uruchomić właściwy formularz
+                i ścieżkę akceptacji
+              </div>
+            </div>
+
+            <span class="badge neutral">6 usług</span>
+          </div>
+
+          <div class="services">
+
+            <!-- 1. Zakup -->
+            <button
+              class="service"
+              type="button"
+              onclick="openRequest('purchase')">
+
+              <span class="service-icon">
+                <svg class="icon"><use href="#i-cart"/></svg>
+              </span>
+
+              <span class="service-body">
+                <span class="service-name">Wniosek o zakup</span>
+
+                <span class="service-description">
+                  Zakup sprzętu, oprogramowania, licencji lub usługi IT
+                </span>
+
+                <span class="service-meta">
+                  SLA: 5 dni · akceptacja kosztowa
+                </span>
+              </span>
+
+              <svg class="icon service-arrow">
+                <use href="#i-chevron"/>
+              </svg>
+            </button>
+
+            <!-- 2. Uprawnienia -->
+            <button
+              class="service"
+              type="button"
+              onclick="openRequest('permissions')">
+
+              <span class="service-icon">
+                <svg class="icon"><use href="#i-key"/></svg>
+              </span>
+
+              <span class="service-body">
+                <span class="service-name">
+                  Wniosek o nadanie uprawnień
+                </span>
+
+                <span class="service-description">
+                  Nadanie, zmiana lub odebranie dostępu do systemu
+                </span>
+
+                <span class="service-meta">
+                  SLA: 2 dni · właściciel systemu
+                </span>
+              </span>
+
+              <svg class="icon service-arrow">
+                <use href="#i-chevron"/>
+              </svg>
+            </button>
+
+            <!-- 3. Praca zdalna -->
+            <button
+              class="service"
+              type="button"
+              onclick="openRequest('remote-work')">
+
+              <span class="service-icon">
+                <svg class="icon"><use href="#i-house"/></svg>
+              </span>
+
+              <span class="service-body">
+                <span class="service-name">
+                  Wniosek o pracę zdalną
+                </span>
+
+                <span class="service-description">
+                  Dostęp VPN i przygotowanie środowiska do pracy poza biurem
+                </span>
+
+                <span class="service-meta">
+                  SLA: 2 dni · akceptacja przełożonego
+                </span>
+              </span>
+
+              <svg class="icon service-arrow">
+                <use href="#i-chevron"/>
+              </svg>
+            </button>
+
+            <!-- 4. Backup -->
+            <button
+              class="service"
+              type="button"
+              onclick="openRequest('backup')">
+
+              <span class="service-icon">
+                <svg class="icon"><use href="#i-database"/></svg>
+              </span>
+
+              <span class="service-body">
+                <span class="service-name">Wniosek o backup</span>
+
+                <span class="service-description">
+                  Utworzenie, zmiana albo odtworzenie kopii zapasowej
+                </span>
+
+                <span class="service-meta">
+                  SLA: 3 dni · administrator danych
+                </span>
+              </span>
+
+              <svg class="icon service-arrow">
+                <use href="#i-chevron"/>
+              </svg>
+            </button>
+
+            <!-- 5. Maszyna wirtualna -->
+            <button
+              class="service"
+              type="button"
+              onclick="openRequest('virtual-machine')">
+
+              <span class="service-icon">
+                <svg class="icon"><use href="#i-server"/></svg>
+              </span>
+
+              <span class="service-body">
+                <span class="service-name">
+                  Wniosek o maszynę wirtualną
+                </span>
+
+                <span class="service-description">
+                  Nowa maszyna VM, zmiana parametrów albo likwidacja środowiska
+                </span>
+
+                <span class="service-meta">
+                  SLA: 5 dni · akceptacja infrastruktury
+                </span>
+              </span>
+
+              <svg class="icon service-arrow">
+                <use href="#i-chevron"/>
+              </svg>
+            </button>
+
+            <!-- 6. Udostępnianie plików -->
+            <button
+              class="service"
+              type="button"
+              onclick="openRequest('external-sharing')">
+
+              <span class="service-icon">
+                <svg class="icon"><use href="#i-share"/></svg>
+              </span>
+
+              <span class="service-body">
+                <span class="service-name">
+                  Udostępnianie plików poza spółkę
+                </span>
+
+                <span class="service-description">
+                  Zgoda na bezpieczne przekazanie plików podmiotowi zewnętrznemu
+                </span>
+
+                <span class="service-meta">
+                  SLA: 2 dni · bezpieczeństwo informacji
+                </span>
+              </span>
+
+              <svg class="icon service-arrow">
+                <use href="#i-chevron"/>
+              </svg>
+            </button>
+
+          </div>
+        </article>
+
+        <!-- Aktywność -->
+        <article class="card">
+          <div class="card-header">
+            <div class="card-header-text">
+              <h2 class="card-title">Ostatnia aktywność</h2>
+
+              <div class="card-description">
+                Zmiany dotyczące Twoich spraw
+              </div>
+            </div>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity">
+              <span class="activity-dot success"></span>
+
+              <div>
+                <div class="activity-title">
+                  WIT-2026-0128 został zakończony
+                </div>
+
+                <div class="activity-meta">
+                  Nadanie uprawnień do IFS · 18 min temu
+                </div>
+              </div>
+            </div>
+
+            <div class="activity">
+              <span class="activity-dot warning"></span>
+
+              <div>
+                <div class="activity-title">
+                  Wymagane uzupełnienie danych
+                </div>
+
+                <div class="activity-meta">
+                  WIT-2026-0131 · 2 godz. temu
+                </div>
+              </div>
+            </div>
+
+            <div class="activity">
+              <span class="activity-dot"></span>
+
+              <div>
+                <div class="activity-title">
+                  Przydzielono osobę realizującą
+                </div>
+
+                <div class="activity-meta">
+                  WIT-2026-0130 · Anna Wójcik
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sla-box">
+            <div class="sla-row">
+              <strong>Ogólna realizacja SLA</strong>
+              <span>96%</span>
+            </div>
+
+            <div class="progress">
+              <span style="width:96%"></span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Ostatnie wnioski i akceptacje -->
+      <section class="bottom-grid">
+
+        <article class="card">
+          <div class="card-header">
+            <div class="card-header-text">
+              <h2 class="card-title">Ostatnie wnioski</h2>
+
+              <div class="card-description">
+                Najnowsze sprawy i ich aktualne statusy
+              </div>
+            </div>
+
+            <button
+              class="btn subtle"
+              type="button"
+              onclick="goTo('requests')">
+              Zobacz wszystkie
+              <svg class="icon"><use href="#i-chevron"/></svg>
+            </button>
+          </div>
+
+          <div class="request-list">
+            <div
+              class="request-row"
+              tabindex="0"
+              onclick="openDetails('WIT-2026-0131')"
+              onkeydown="if(event.key === 'Enter') openDetails('WIT-2026-0131')">
+
+              <span class="request-icon">
+                <svg class="icon"><use href="#i-share"/></svg>
+              </span>
+
+              <div class="request-body">
+                <div class="request-title">
+                  Udostępnienie dokumentacji partnerowi
+                </div>
+
+                <div class="request-meta">
+                  WIT-2026-0131 · Udostępnianie plików poza spółkę
+                </div>
+              </div>
+
+              <span class="badge danger">Do uzupełnienia</span>
+            </div>
+
+            <div
+              class="request-row"
+              tabindex="0"
+              onclick="openDetails('WIT-2026-0130')"
+              onkeydown="if(event.key === 'Enter') openDetails('WIT-2026-0130')">
+
+              <span class="request-icon">
+                <svg class="icon"><use href="#i-server"/></svg>
+              </span>
+
+              <div class="request-body">
+                <div class="request-title">
+                  Maszyna testowa dla projektu 39WE
+                </div>
+
+                <div class="request-meta">
+                  WIT-2026-0130 · Maszyna wirtualna
+                </div>
+              </div>
+
+              <span class="badge warning">W realizacji</span>
+            </div>
+
+            <div
+              class="request-row"
+              tabindex="0"
+              onclick="openDetails('WIT-2026-0128')"
+              onkeydown="if(event.key === 'Enter') openDetails('WIT-2026-0128')">
+
+              <span class="request-icon">
+                <svg class="icon"><use href="#i-key"/></svg>
+              </span>
+
+              <div class="request-body">
+                <div class="request-title">
+                  Nadanie dostępu do systemu IFS
+                </div>
+
+                <div class="request-meta">
+                  WIT-2026-0128 · Nadanie uprawnień
+                </div>
+              </div>
+
+              <span class="badge success">Zakończony</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="approvals">
+          <div class="card-header">
+            <div class="card-header-text">
+              <h2 class="card-title">Oczekujące akceptacje</h2>
+
+              <div class="card-description">
+                Wnioski wymagające Twojej decyzji
+              </div>
+            </div>
+
+            <span class="badge warning" id="approvalHeaderCount">
+              2 oczekujące
+            </span>
+          </div>
+
+          <div class="approval-list" id="approvalList">
+            <div class="approval-row">
+              <span class="approval-icon">
+                <svg class="icon"><use href="#i-cart"/></svg>
+              </span>
+
+              <div class="approval-body">
+                <div class="approval-title">
+                  Zakup laptopa dla konstruktora
+                </div>
+
+                <div class="approval-meta">
+                  Anna Nowak · szacowany koszt 6 500 zł
+                </div>
+              </div>
+
+              <button
+                class="btn primary"
+                type="button"
+                onclick="approveRequest(this)">
+                Akceptuj
+              </button>
+            </div>
+
+            <div class="approval-row">
+              <span class="approval-icon">
+                <svg class="icon"><use href="#i-key"/></svg>
+              </span>
+
+              <div class="approval-body">
+                <div class="approval-title">
+                  Dostęp administratora do IFS
+                </div>
+
+                <div class="approval-meta">
+                  Piotr Kowal · uprawnienie podwyższone
+                </div>
+              </div>
+
+              <button
+                class="btn primary"
+                type="button"
+                onclick="approveRequest(this)">
+                Akceptuj
+              </button>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Rejestr wniosków -->
+      <section class="card requests-card" id="requests">
+        <div class="card-header">
+          <div class="card-header-text">
+            <h2 class="card-title">Moje wnioski</h2>
+
+            <div class="card-description">
+              Rejestr spraw zgłoszonych do Działu IT
+            </div>
+          </div>
+
+          <button
+            class="btn"
+            type="button"
+            onclick="showToast('Przygotowano eksport XLSX')">
+            <svg class="icon"><use href="#i-export"/></svg>
+            Eksportuj
+          </button>
+        </div>
+
+        <div class="command-bar">
+          <div class="segmented" aria-label="Filtr statusu">
+            <button
+              class="active"
+              type="button"
+              data-filter="all"
+              onclick="setFilter(this)">
+              Wszystkie
+            </button>
+
+            <button
+              type="button"
+              data-filter="open"
+              onclick="setFilter(this)">
+              W realizacji
+            </button>
+
+            <button
+              type="button"
+              data-filter="action"
+              onclick="setFilter(this)">
+              Do uzupełnienia
+            </button>
+
+            <button
+              type="button"
+              data-filter="done"
+              onclick="setFilter(this)">
+              Zakończone
+            </button>
+          </div>
+
+          <div class="spacer"></div>
+
+          <button
+            class="btn"
+            type="button"
+            onclick="showToast('Otwarto filtry zaawansowane')">
+            <svg class="icon"><use href="#i-filter"/></svg>
+            Filtry
+          </button>
+
+          <div class="table-search">
+            <svg class="icon"><use href="#i-search"/></svg>
+
+            <input
+              id="tableSearch"
+              type="search"
+              placeholder="Szukaj…"
+              aria-label="Szukaj w rejestrze"
+              oninput="filterRequests(this.value)">
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table id="requestTable">
+            <thead>
+              <tr>
+                <th>Wniosek</th>
+                <th>Data</th>
+                <th>Realizujący</th>
+                <th>Priorytet</th>
+                <th>SLA</th>
+                <th>Status</th>
+                <th aria-label="Działania"></th>
+              </tr>
+            </thead>
+
+            <tbody id="requestRows">
+              <!-- Wiersze zostaną wygenerowane przez JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <span id="resultCount">Wyświetlono 0 wniosków</span>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- =======================================================
+     POWIADOMIENIA
+     ======================================================= -->
+<div class="popover" id="notifications">
+  <div class="popover-header">
+    <strong>Powiadomienia</strong>
+
+    <button
+      class="btn subtle"
+      type="button"
+      onclick="markNotifications()">
+      Oznacz jako przeczytane
+    </button>
+  </div>
+
+  <div class="notification">
+    <span class="notification-icon warning">
+      <svg class="icon"><use href="#i-warning"/></svg>
+    </span>
+
+    <div>
+      <div class="notification-title">
+        Uzupełnij dane WIT-2026-0131
+      </div>
+
+      <div class="notification-text">
+        Brakuje informacji o odbiorcy zewnętrznym i okresie udostępnienia.
+      </div>
+
+      <div class="notification-time">2 godz. temu</div>
+    </div>
+  </div>
+
+  <div class="notification">
+    <span class="notification-icon">
+      <svg class="icon"><use href="#i-check"/></svg>
+    </span>
+
+    <div>
+      <div class="notification-title">
+        WIT-2026-0128 został zakończony
+      </div>
+
+      <div class="notification-text">
+        Uprawnienia do systemu IFS zostały nadane.
+      </div>
+
+      <div class="notification-time">18 min temu</div>
+    </div>
+  </div>
+</div>
+
+<!-- =======================================================
+     MENU UŻYTKOWNIKA
+     ======================================================= -->
+<div class="popover user-menu" id="userMenu">
+  <div class="user-menu-head">
+    <span class="avatar">JK</span>
+
+    <div>
+      <strong>Jan Kowalski</strong>
+      <div class="profile-role">jan.kowalski@firma.pl</div>
+    </div>
+  </div>
+
+  <button
+    class="user-menu-item"
+    type="button"
+    onclick="showToast('Otwarto profil użytkownika')">
+    <svg class="icon"><use href="#i-person"/></svg>
+    Profil użytkownika
+  </button>
+
+  <button
+    class="user-menu-item"
+    type="button"
+    onclick="showToast('Otwarto ustawienia')">
+    <svg class="icon"><use href="#i-settings"/></svg>
+    Ustawienia
+  </button>
+
+  <button
+    class="user-menu-item"
+    type="button"
+    onclick="showToast('Wylogowanie — funkcja demonstracyjna')">
+    <svg class="icon"><use href="#i-chevron"/></svg>
+    Wyloguj
+  </button>
+</div>
+
+<!-- =======================================================
+     KREATOR NOWEGO WNIOSKU
+     ======================================================= -->
+<div
+  class="overlay"
+  id="requestOverlay"
+  onclick="requestOverlayClose(event)">
+
+  <section
+    class="dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="requestDialogTitle">
+
+    <header class="dialog-header">
+      <div class="dialog-icon">
+        <svg class="icon"><use href="#i-plus"/></svg>
+      </div>
+
+      <div class="dialog-heading">
+        <div class="dialog-title" id="requestDialogTitle">
+          Nowy wniosek IT
+        </div>
+
+        <div class="dialog-subtitle">
+          Formularz automatycznie dopasuje pola i ścieżkę akceptacji
+        </div>
+      </div>
+
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Zamknij"
+        onclick="closeRequest()">
+        <svg class="icon"><use href="#i-close"/></svg>
+      </button>
+    </header>
+
+    <div class="dialog-body">
+      <div class="steps">
+        <div class="step active" data-step-indicator="1">
+          <div class="step-circle">1</div>
+          Rodzaj sprawy
+        </div>
+
+        <div class="step" data-step-indicator="2">
+          <div class="step-circle">2</div>
+          Szczegóły
+        </div>
+
+        <div class="step" data-step-indicator="3">
+          <div class="step-circle">3</div>
+          Podsumowanie
+        </div>
+      </div>
+
+      <form id="requestForm" novalidate>
+
+        <!-- KROK 1 -->
+        <div class="wizard-page" data-step="1">
+          <h3 class="section-heading">Wybierz rodzaj wniosku</h3>
+
+          <div class="form-grid">
+            <div class="form-field full">
+              <label class="form-label" for="requestType">
+                Rodzaj wniosku <span class="required">*</span>
+              </label>
+
+              <select
+                class="select"
+                id="requestType"
+                required
+                onchange="handleRequestTypeChange()">
+
+                <option value="purchase">Wniosek o zakup</option>
+
+                <option value="permissions">
+                  Wniosek o nadanie uprawnień
+                </option>
+
+                <option value="remote-work">
+                  Wniosek o pracę zdalną
+                </option>
+
+                <option value="backup">Wniosek o backup</option>
+
+                <option value="virtual-machine">
+                  Wniosek o maszynę wirtualną
+                </option>
+
+                <option value="external-sharing">
+                  Wniosek o możliwość udostępniania plików poza spółkę
+                </option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" for="priority">
+                Priorytet
+              </label>
+
+              <select class="select" id="priority">
+                <option value="Standardowy">Standardowy</option>
+                <option value="Wysoki">Wysoki</option>
+                <option value="Krytyczny">Krytyczny</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" for="department">
+                Jednostka organizacyjna
+              </label>
+
+              <select class="select" id="department">
+                <option>Wydział W2</option>
+                <option>Wydział W1</option>
+                <option>Dział Jakości</option>
+                <option>Dział Serwisu</option>
+                <option>Dział Finansowy</option>
+                <option>Dział Handlowy</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="message">
+            <svg class="icon"><use href="#i-info"/></svg>
+            <span id="requestMeta"></span>
+          </div>
+
+          <div class="dynamic-section">
+            <h3 class="section-heading">Ścieżka akceptacji</h3>
+
+            <div
+              class="approval-path"
+              id="approvalPath">
+              <!-- Generowane przez JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- KROK 2 -->
+        <div class="wizard-page hidden" data-step="2">
+          <h3 class="section-heading">Podstawowe informacje</h3>
+
+          <div class="form-grid">
+            <div class="form-field full">
+              <label class="form-label" for="requestTitle">
+                Tytuł <span class="required">*</span>
+              </label>
+
+              <input
+                class="input"
+                id="requestTitle"
+                type="text"
+                minlength="5"
+                maxlength="140"
+                required
+                placeholder="Krótko opisz przedmiot wniosku">
+            </div>
+
+            <div class="form-field full">
+              <label class="form-label" for="requestDescription">
+                Opis i uzasadnienie <span class="required">*</span>
+              </label>
+
+              <textarea
+                class="textarea"
+                id="requestDescription"
+                minlength="10"
+                maxlength="3000"
+                required
+                placeholder="Opisz cel, zakres i uzasadnienie biznesowe wniosku"></textarea>
+
+              <div class="field-hint">
+                Nie wpisuj haseł ani danych poufnych. Dokładny opis
+                przyspieszy realizację.
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" for="neededDate">
+                Oczekiwany termin
+              </label>
+
+              <input
+                class="input"
+                id="neededDate"
+                type="date">
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" for="costCenter">
+                Centrum kosztowe
+              </label>
+
+              <input
+                class="input"
+                id="costCenter"
+                type="text"
+                value="W2-PROD-100"
+                placeholder="Np. W2-PROD-100">
+            </div>
+          </div>
+
+          <!-- Dynamiczne pola właściwe dla rodzaju wniosku -->
+          <div class="dynamic-section">
+            <h3 class="section-heading" id="dynamicSectionTitle">
+              Dane szczegółowe
+            </h3>
+
+            <div
+              class="dynamic-fields"
+              id="dynamicFields">
+              <!-- Generowane przez JavaScript -->
+            </div>
+          </div>
+
+          <!-- Załączniki -->
+          <div class="dynamic-section">
+            <h3 class="section-heading">Załączniki</h3>
+
+            <label
+              class="dropzone"
+              id="dropzone"
+              ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)"
+              ondrop="handleFileDrop(event)">
+
+              <input
+                type="file"
+                id="attachmentInput"
+                multiple
+                onchange="handleFileSelection(this.files)">
+
+              <svg class="icon"><use href="#i-attach"/></svg>
+
+              <span>
+                Przeciągnij pliki lub kliknij, aby dodać załączniki
+              </span>
+            </label>
+
+            <div class="field-hint">
+              Maksymalnie 10 plików. Makieta nie przesyła plików na serwer.
+            </div>
+
+            <div class="file-list" id="fileList"></div>
+          </div>
+        </div>
+
+        <!-- KROK 3 -->
+        <div class="wizard-page hidden" data-step="3">
+          <h3 class="section-heading">Podsumowanie wniosku</h3>
+
+          <div class="summary">
+            <div class="summary-item">
+              <div class="summary-label">Rodzaj</div>
+              <div class="summary-value" id="sumType"></div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-label">Priorytet</div>
+              <div class="summary-value" id="sumPriority"></div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-label">Jednostka</div>
+              <div class="summary-value" id="sumDepartment"></div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-label">Oczekiwany termin</div>
+              <div class="summary-value" id="sumDate"></div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-label">Centrum kosztowe</div>
+              <div class="summary-value" id="sumCostCenter"></div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-label">Załączniki</div>
+              <div class="summary-value" id="sumAttachments"></div>
+            </div>
+
+            <div class="summary-item full">
+              <div class="summary-label">Tytuł</div>
+              <div class="summary-value" id="sumTitle"></div>
+            </div>
+
+            <div class="summary-item full">
+              <div class="summary-label">Opis i uzasadnienie</div>
+              <div class="summary-value" id="sumDescription"></div>
+            </div>
+          </div>
+
+          <div class="dynamic-section">
+            <h3 class="section-heading">Dane szczegółowe</h3>
+
+            <div
+              class="summary-dynamic"
+              id="sumDynamicFields">
+              <!-- Generowane przez JavaScript -->
+            </div>
+          </div>
+
+          <div class="dynamic-section">
+            <h3 class="section-heading">Ścieżka akceptacji</h3>
+
+            <div
+              class="approval-path"
+              id="summaryApprovalPath">
+              <!-- Generowane przez JavaScript -->
+            </div>
+          </div>
+
+          <div class="message">
+            <svg class="icon"><use href="#i-shield"/></svg>
+
+            <span>
+              Po wysłaniu wniosek otrzyma numer i zostanie skierowany
+              do właściwej grupy IT oraz osób akceptujących.
+            </span>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <footer class="dialog-footer">
+      <button
+        class="btn"
+        type="button"
+        onclick="closeRequest()">
+        Anuluj
+      </button>
+
+      <button
+        class="btn"
+        type="button"
+        onclick="saveDraft()">
+        Zapisz wersję roboczą
+      </button>
+
+      <div class="spacer"></div>
+
+      <button
+        class="btn hidden"
+        id="previousStep"
+        type="button"
+        onclick="changeStep(-1)">
+        Wstecz
+      </button>
+
+      <button
+        class="btn primary"
+        id="nextStep"
+        type="button"
+        onclick="changeStep(1)">
+        Dalej
+      </button>
+
+      <button
+        class="btn primary hidden"
+        id="submitRequestButton"
+        type="button"
+        onclick="submitRequest()">
+        Wyślij wniosek
+      </button>
+    </footer>
+  </section>
+</div>
+
+<!-- =======================================================
+     PANEL SZCZEGÓŁÓW WNIOSKU
+     ======================================================= -->
+<div
+  class="drawer-backdrop"
+  id="drawerBackdrop"
+  onclick="closeDetails()">
+</div>
+
+<aside
+  class="drawer"
+  id="detailsDrawer"
+  aria-label="Szczegóły wniosku">
+
+  <header class="drawer-header">
+    <div class="drawer-header-text">
+      <div class="drawer-caption">Szczegóły wniosku</div>
+
+      <div class="drawer-title" id="drawerHeaderTitle">
+        Wniosek IT
+      </div>
+    </div>
+
+    <button
+      class="icon-button"
+      type="button"
+      aria-label="Zamknij"
+      onclick="closeDetails()">
+      <svg class="icon"><use href="#i-close"/></svg>
+    </button>
+  </header>
+
+  <div class="drawer-tabs">
+    <button
+      class="drawer-tab active"
+      type="button"
+      data-tab="overview"
+      onclick="switchDetailTab(this)">
+      Informacje
+    </button>
+
+    <button
+      class="drawer-tab"
+      type="button"
+      data-tab="history"
+      onclick="switchDetailTab(this)">
+      Historia
+    </button>
+
+    <button
+      class="drawer-tab"
+      type="button"
+      data-tab="attachments"
+      onclick="switchDetailTab(this)">
+      Załączniki
+      <span id="drawerAttachmentCount">(0)</span>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+
+    <!-- Informacje -->
+    <section class="detail-panel" data-panel="overview">
+      <div class="detail-code" id="detailCode"></div>
+      <div class="detail-title" id="detailTitle"></div>
+      <div class="detail-meta" id="detailMeta"></div>
+
+      <div class="detail-status">
+        <span class="badge" id="detailStatus"></span>
+        <span class="badge neutral" id="detailPriority"></span>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-field">
+          <div class="detail-label">Kategoria</div>
+          <div class="detail-value" id="detailCategory"></div>
+        </div>
+
+        <div class="detail-field">
+          <div class="detail-label">Realizujący</div>
+          <div class="detail-value" id="detailAssignee"></div>
+        </div>
+
+        <div class="detail-field">
+          <div class="detail-label">Jednostka</div>
+          <div class="detail-value" id="detailDepartment"></div>
+        </div>
+
+        <div class="detail-field">
+          <div class="detail-label">Termin SLA</div>
+          <div class="detail-value" id="detailSla"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Postęp SLA</div>
+
+      <div class="sla-box" style="margin:0">
+        <div class="sla-row">
+          <strong id="detailSlaLabel">Realizacja zgodna z SLA</strong>
+          <span id="detailSlaPercent">0%</span>
+        </div>
+
+        <div class="progress" id="detailSlaProgress">
+          <span style="width:0"></span>
+        </div>
+      </div>
+
+      <div class="section-title">Opis wniosku</div>
+
+      <div
+        class="description-box"
+        id="detailDescription">
+      </div>
+
+      <div class="section-title">Dane szczegółowe</div>
+
+      <div
+        class="detail-grid"
+        id="detailDynamicFields"
+        style="margin-top:0">
+      </div>
+
+      <div class="section-title">Ścieżka akceptacji</div>
+
+      <div
+        class="approval-path"
+        id="detailApprovalPath">
+      </div>
+    </section>
+
+    <!-- Historia -->
+    <section
+      class="detail-panel hidden"
+      data-panel="history">
+
+      <div class="timeline">
+        <div class="timeline-item complete">
+          <span class="timeline-dot"></span>
+
+          <div>
+            <div class="timeline-title">
+              Wniosek został utworzony
+            </div>
+
+            <div class="timeline-meta" id="historyCreated">
+              Jan Kowalski
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item complete">
+          <span class="timeline-dot"></span>
+
+          <div>
+            <div class="timeline-title">
+              Przekazano do właściwej ścieżki akceptacji
+            </div>
+
+            <div class="timeline-meta">
+              Automatyczny obieg wniosków
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item complete">
+          <span class="timeline-dot"></span>
+
+          <div>
+            <div class="timeline-title">
+              Przydzielono osobę realizującą
+            </div>
+
+            <div class="timeline-meta" id="historyAssignee"></div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <span class="timeline-dot"></span>
+
+          <div>
+            <div class="timeline-title">
+              Aktualny etap realizacji
+            </div>
+
+            <div class="timeline-meta" id="historyCurrentStage"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Załączniki -->
+    <section
+      class="detail-panel hidden"
+      data-panel="attachments">
+
+      <div id="drawerAttachmentList"></div>
+
+      <label class="dropzone" style="margin-top:15px">
+        <input
+          type="file"
+          multiple
+          onchange="addDrawerAttachments(this.files)">
+
+        <svg class="icon"><use href="#i-attach"/></svg>
+        <span>Dodaj kolejne załączniki</span>
+      </label>
+    </section>
+  </div>
+
+  <footer class="drawer-footer">
+    <button
+      class="btn"
+      type="button"
+      onclick="closeDetails()">
+      Zamknij
+    </button>
+
+    <button
+      class="btn primary"
+      type="button"
+      onclick="showToast('Otwarto edycję wniosku')">
+      Edytuj wniosek
+    </button>
+  </footer>
+</aside>
+
+<!-- =======================================================
+     PALETA POLECEŃ
+     ======================================================= -->
+<div
+  class="overlay command-overlay"
+  id="commandOverlay"
+  onclick="commandOverlayClose(event)">
+
+  <section class="dialog command-dialog" role="dialog" aria-modal="true">
+    <div class="command-input">
+      <svg class="icon"><use href="#i-search"/></svg>
+
+      <input
+        id="commandInput"
+        type="search"
+        placeholder="Szukaj wniosków, usług lub poleceń…"
+        aria-label="Wyszukiwanie poleceń"
+        oninput="filterCommands(this.value)">
+
+      <span class="search-shortcut">Esc</span>
+    </div>
+
+    <div class="command-results" id="commandResults">
+      <div class="command-section">Szybkie działania</div>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="nowy wniosek utwórz dodaj"
+        onclick="closeCommandPalette(); openRequest()">
+        <svg class="icon"><use href="#i-plus"/></svg>
+        <span>Utwórz nowy wniosek</span>
+        <small class="command-key">N</small>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="moje wnioski rejestr lista"
+        onclick="closeCommandPalette(); goTo('requests')">
+        <svg class="icon"><use href="#i-file"/></svg>
+        <span>Przejdź do moich wniosków</span>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="katalog usługi rodzaje formularze"
+        onclick="closeCommandPalette(); goTo('catalog')">
+        <svg class="icon"><use href="#i-grid"/></svg>
+        <span>Otwórz katalog usług</span>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="motyw ciemny jasny wygląd"
+        onclick="toggleTheme()">
+        <svg class="icon"><use href="#i-moon"/></svg>
+        <span>Zmień motyw aplikacji</span>
+      </button>
+
+      <div class="command-section">Rodzaje wniosków</div>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="zakup sprzęt licencja usługa"
+        onclick="closeCommandPalette(); openRequest('purchase')">
+        <svg class="icon"><use href="#i-cart"/></svg>
+        <span>Wniosek o zakup</span>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="uprawnienia dostęp system rola"
+        onclick="closeCommandPalette(); openRequest('permissions')">
+        <svg class="icon"><use href="#i-key"/></svg>
+        <span>Wniosek o nadanie uprawnień</span>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="praca zdalna vpn poza biurem"
+        onclick="closeCommandPalette(); openRequest('remote-work')">
+        <svg class="icon"><use href="#i-house"/></svg>
+        <span>Wniosek o pracę zdalną</span>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="backup kopia zapasowa odtworzenie"
+        onclick="closeCommandPalette(); openRequest('backup')">
+        <svg class="icon"><use href="#i-database"/></svg>
+        <span>Wniosek o backup</span>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="maszyna wirtualna vm serwer"
+        onclick="closeCommandPalette(); openRequest('virtual-machine')">
+        <svg class="icon"><use href="#i-server"/></svg>
+        <span>Wniosek o maszynę wirtualną</span>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="udostępnianie plików poza spółkę zewnętrzne"
+        onclick="closeCommandPalette(); openRequest('external-sharing')">
+        <svg class="icon"><use href="#i-share"/></svg>
+        <span>Udostępnianie plików poza spółkę</span>
+      </button>
+
+      <div class="command-section">Ostatnie wnioski</div>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="WIT-2026-0131 udostępnienie dokumentacji partnerowi"
+        onclick="closeCommandPalette(); openDetails('WIT-2026-0131')">
+        <svg class="icon"><use href="#i-file"/></svg>
+        <span>WIT-2026-0131 · Udostępnienie dokumentacji partnerowi</span>
+      </button>
+
+      <button
+        class="command-item"
+        type="button"
+        data-search="WIT-2026-0130 maszyna testowa projekt 39WE"
+        onclick="closeCommandPalette(); openDetails('WIT-2026-0130')">
+        <svg class="icon"><use href="#i-file"/></svg>
+        <span>WIT-2026-0130 · Maszyna testowa dla projektu 39WE</span>
+      </button>
+    </div>
+  </section>
+</div>
+
+<!-- Komunikat -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg class="icon"><use href="#i-check"/></svg>
+  <span id="toastText"></span>
+</div>
+
+<!-- JavaScript rozpocznie się w części 3/3 -->
+ <script>
+"use strict";
+
+/* =========================================================
+   KONFIGURACJA RODZAJÓW WNIOSKÓW
+   ========================================================= */
+
+const REQUEST_TYPES = {
+  "purchase": {
+    label: "Wniosek o zakup",
+    category: "Zakupy IT",
+    icon: "i-cart",
+    sla: "5 dni roboczych",
+    assignee: "Zespół Zakupów IT",
+    meta:
+      "Przewidywany czas realizacji: 5 dni roboczych. " +
+      "Wniosek wymaga akceptacji przełożonego i osoby odpowiedzialnej za budżet.",
+    dynamicTitle: "Informacje o planowanym zakupie",
+    approvals: [
+      {
+        name: "Przełożony wnioskodawcy",
+        description: "Potwierdzenie zasadności biznesowej zakupu"
+      },
+      {
+        name: "Właściciel budżetu",
+        description: "Potwierdzenie dostępności środków"
+      },
+      {
+        name: "Dział IT",
+        description: "Weryfikacja zgodności ze standardami technicznymi"
+      }
+    ],
+    fields: [
+      {
+        id: "purchaseCategory",
+        label: "Kategoria zakupu",
+        type: "select",
+        required: true,
+        options: [
+          "Sprzęt komputerowy",
+          "Oprogramowanie",
+          "Licencja",
+          "Usługa IT",
+          "Akcesoria",
+          "Inne"
+        ]
+      },
+      {
+        id: "purchaseItem",
+        label: "Przedmiot zakupu",
+        type: "text",
+        required: true,
+        placeholder: "Np. laptop, monitor, licencja Microsoft Visio"
+      },
+      {
+        id: "purchaseQuantity",
+        label: "Liczba sztuk lub licencji",
+        type: "number",
+        required: true,
+        min: "1",
+        value: "1"
+      },
+      {
+        id: "estimatedCost",
+        label: "Szacowany koszt brutto [PLN]",
+        type: "number",
+        required: true,
+        min: "0",
+        step: "0.01",
+        placeholder: "0,00"
+      },
+      {
+        id: "preferredSupplier",
+        label: "Preferowany dostawca",
+        type: "text",
+        placeholder: "Opcjonalnie"
+      },
+      {
+        id: "purchaseSpecification",
+        label: "Wymagania lub specyfikacja",
+        type: "textarea",
+        required: true,
+        full: true,
+        placeholder:
+          "Podaj wymagane parametry, model, wersję albo najważniejsze cechy produktu"
+      }
+    ]
+  },
+
+  "permissions": {
+    label: "Wniosek o nadanie uprawnień",
+    category: "Uprawnienia",
+    icon: "i-key",
+    sla: "2 dni robocze",
+    assignee: "Zespół Zarządzania Dostępem",
+    meta:
+      "Przewidywany czas realizacji: 2 dni robocze. " +
+      "Wymagana jest akceptacja przełożonego oraz właściciela wskazanego systemu.",
+    dynamicTitle: "Zakres wymaganych uprawnień",
+    approvals: [
+      {
+        name: "Przełożony wnioskodawcy",
+        description: "Potwierdzenie potrzeby dostępu"
+      },
+      {
+        name: "Właściciel systemu",
+        description: "Akceptacja zakresu uprawnień"
+      },
+      {
+        name: "Administrator systemu",
+        description: "Realizacja zatwierdzonego dostępu"
+      }
+    ],
+    fields: [
+      {
+        id: "permissionAction",
+        label: "Rodzaj operacji",
+        type: "select",
+        required: true,
+        options: [
+          "Nadanie uprawnień",
+          "Zmiana uprawnień",
+          "Odebranie uprawnień"
+        ]
+      },
+      {
+        id: "systemName",
+        label: "System lub aplikacja",
+        type: "text",
+        required: true,
+        placeholder: "Np. IFS, SAP, SharePoint"
+      },
+      {
+        id: "permissionUser",
+        label: "Użytkownik, którego dotyczy wniosek",
+        type: "text",
+        required: true,
+        value: "Jan Kowalski"
+      },
+      {
+        id: "permissionRole",
+        label: "Rola lub zakres dostępu",
+        type: "text",
+        required: true,
+        placeholder: "Np. raportowanie, odczyt, administrator"
+      },
+      {
+        id: "accessStart",
+        label: "Dostęp od",
+        type: "date",
+        required: true
+      },
+      {
+        id: "accessEnd",
+        label: "Dostęp do",
+        type: "date",
+        hint: "Pozostaw puste, jeżeli dostęp ma być bezterminowy"
+      },
+      {
+        id: "privilegedAccess",
+        label: "Dostęp podwyższony lub administracyjny",
+        type: "checkbox",
+        full: true
+      }
+    ]
+  },
+
+  "remote-work": {
+    label: "Wniosek o pracę zdalną",
+    category: "Praca zdalna",
+    icon: "i-house",
+    sla: "2 dni robocze",
+    assignee: "Service Desk",
+    meta:
+      "Przewidywany czas realizacji: 2 dni robocze. " +
+      "Wniosek wymaga akceptacji przełożonego, a dostęp VPN zostanie zweryfikowany przez IT.",
+    dynamicTitle: "Organizacja pracy zdalnej",
+    approvals: [
+      {
+        name: "Przełożony wnioskodawcy",
+        description: "Akceptacja terminu i trybu pracy zdalnej"
+      },
+      {
+        name: "Dział IT",
+        description: "Weryfikacja sprzętu, VPN i zabezpieczeń"
+      }
+    ],
+    fields: [
+      {
+        id: "remoteMode",
+        label: "Tryb pracy zdalnej",
+        type: "select",
+        required: true,
+        options: [
+          "Jednorazowa",
+          "Okresowa",
+          "Hybrydowa",
+          "Stała"
+        ]
+      },
+      {
+        id: "remoteLocation",
+        label: "Miejsce wykonywania pracy",
+        type: "text",
+        required: true,
+        placeholder: "Miejscowość lub kraj"
+      },
+      {
+        id: "remoteStart",
+        label: "Data rozpoczęcia",
+        type: "date",
+        required: true
+      },
+      {
+        id: "remoteEnd",
+        label: "Data zakończenia",
+        type: "date",
+        required: true
+      },
+      {
+        id: "remoteEquipment",
+        label: "Wymagane wyposażenie",
+        type: "select",
+        required: true,
+        options: [
+          "Bez dodatkowego wyposażenia",
+          "Laptop służbowy",
+          "Monitor",
+          "Telefon służbowy",
+          "Laptop i monitor",
+          "Inne"
+        ]
+      },
+      {
+        id: "vpnRequired",
+        label: "Wymagany dostęp VPN",
+        type: "checkbox"
+      },
+      {
+        id: "remoteSystems",
+        label: "Systemy używane podczas pracy zdalnej",
+        type: "textarea",
+        full: true,
+        placeholder: "Wymień systemy lub zasoby, do których potrzebny będzie dostęp"
+      }
+    ]
+  },
+
+  "backup": {
+    label: "Wniosek o backup",
+    category: "Backup i odtwarzanie",
+    icon: "i-database",
+    sla: "3 dni robocze",
+    assignee: "Zespół Infrastruktury IT",
+    meta:
+      "Przewidywany czas realizacji: 3 dni robocze. " +
+      "Zakres kopii musi zostać potwierdzony przez właściciela danych.",
+    dynamicTitle: "Parametry kopii zapasowej",
+    approvals: [
+      {
+        name: "Właściciel danych",
+        description: "Potwierdzenie zakresu i klasyfikacji danych"
+      },
+      {
+        name: "Administrator backupu",
+        description: "Ocena możliwości technicznych i retencji"
+      }
+    ],
+    fields: [
+      {
+        id: "backupOperation",
+        label: "Rodzaj operacji",
+        type: "select",
+        required: true,
+        options: [
+          "Utworzenie nowego backupu",
+          "Zmiana konfiguracji backupu",
+          "Odtworzenie danych",
+          "Wyłączenie backupu"
+        ]
+      },
+      {
+        id: "backupResource",
+        label: "Zasób objęty wnioskiem",
+        type: "text",
+        required: true,
+        placeholder: "Serwer, baza danych, katalog lub system"
+      },
+      {
+        id: "dataOwner",
+        label: "Właściciel danych",
+        type: "text",
+        required: true,
+        placeholder: "Imię, nazwisko lub jednostka"
+      },
+      {
+        id: "backupFrequency",
+        label: "Częstotliwość",
+        type: "select",
+        required: true,
+        options: [
+          "Jednorazowo",
+          "Co godzinę",
+          "Codziennie",
+          "Co tydzień",
+          "Co miesiąc"
+        ]
+      },
+      {
+        id: "backupRetention",
+        label: "Wymagany okres retencji",
+        type: "select",
+        required: true,
+        options: [
+          "7 dni",
+          "14 dni",
+          "30 dni",
+          "90 dni",
+          "1 rok",
+          "Inny"
+        ]
+      },
+      {
+        id: "restoreDate",
+        label: "Punkt odtworzenia",
+        type: "datetime-local",
+        hint: "Wypełnij w przypadku odtwarzania danych"
+      },
+      {
+        id: "backupScope",
+        label: "Zakres danych lub ścieżka",
+        type: "textarea",
+        required: true,
+        full: true,
+        placeholder: "Podaj katalogi, bazy, tabele lub inne zasoby"
+      }
+    ]
+  },
+
+  "virtual-machine": {
+    label: "Wniosek o maszynę wirtualną",
+    category: "Infrastruktura wirtualna",
+    icon: "i-server",
+    sla: "5 dni roboczych",
+    assignee: "Zespół Infrastruktury IT",
+    meta:
+      "Przewidywany czas realizacji: 5 dni roboczych. " +
+      "Wymagana jest akceptacja przełożonego oraz administratora infrastruktury.",
+    dynamicTitle: "Parametry maszyny wirtualnej",
+    approvals: [
+      {
+        name: "Przełożony wnioskodawcy",
+        description: "Potwierdzenie potrzeby biznesowej"
+      },
+      {
+        name: "Architekt lub administrator IT",
+        description: "Weryfikacja architektury i dostępnych zasobów"
+      },
+      {
+        name: "Właściciel budżetu",
+        description: "Akceptacja kosztów infrastruktury, jeżeli wystąpią"
+      }
+    ],
+    fields: [
+      {
+        id: "vmAction",
+        label: "Rodzaj operacji",
+        type: "select",
+        required: true,
+        options: [
+          "Utworzenie nowej maszyny",
+          "Zmiana parametrów",
+          "Klonowanie maszyny",
+          "Likwidacja maszyny"
+        ]
+      },
+      {
+        id: "vmEnvironment",
+        label: "Środowisko",
+        type: "select",
+        required: true,
+        options: [
+          "Deweloperskie",
+          "Testowe",
+          "Akceptacyjne",
+          "Produkcyjne"
+        ]
+      },
+      {
+        id: "vmSystem",
+        label: "System operacyjny",
+        type: "select",
+        required: true,
+        options: [
+          "Windows Server 2025",
+          "Windows Server 2022",
+          "Ubuntu Server 24.04 LTS",
+          "Red Hat Enterprise Linux",
+          "Inny"
+        ]
+      },
+      {
+        id: "vmCpu",
+        label: "Liczba vCPU",
+        type: "number",
+        required: true,
+        min: "1",
+        max: "64",
+        value: "2"
+      },
+      {
+        id: "vmRam",
+        label: "Pamięć RAM [GB]",
+        type: "number",
+        required: true,
+        min: "1",
+        max: "512",
+        value: "8"
+      },
+      {
+        id: "vmDisk",
+        label: "Przestrzeń dyskowa [GB]",
+        type: "number",
+        required: true,
+        min: "20",
+        value: "100"
+      },
+      {
+        id: "vmNetwork",
+        label: "Strefa sieciowa",
+        type: "select",
+        required: true,
+        options: [
+          "Sieć wewnętrzna",
+          "Sieć serwerowa",
+          "DMZ",
+          "Izolowana sieć testowa"
+        ]
+      },
+      {
+        id: "vmEndDate",
+        label: "Planowana data likwidacji",
+        type: "date",
+        hint: "Opcjonalnie dla środowisk czasowych"
+      },
+      {
+        id: "vmPurpose",
+        label: "Przeznaczenie maszyny",
+        type: "textarea",
+        required: true,
+        full: true,
+        placeholder: "Opisz aplikację, usługę i przewidywane obciążenie"
+      }
+    ]
+  },
+
+  "external-sharing": {
+    label: "Wniosek o możliwość udostępniania plików poza spółkę",
+    category: "Bezpieczeństwo informacji",
+    icon: "i-share",
+    sla: "2 dni robocze",
+    assignee: "Zespół Bezpieczeństwa IT",
+    meta:
+      "Przewidywany czas realizacji: 2 dni robocze. " +
+      "Wniosek wymaga akceptacji przełożonego, właściciela danych " +
+      "i zespołu bezpieczeństwa informacji.",
+    dynamicTitle: "Zakres udostępnienia zewnętrznego",
+    approvals: [
+      {
+        name: "Przełożony wnioskodawcy",
+        description: "Potwierdzenie celu biznesowego"
+      },
+      {
+        name: "Właściciel danych",
+        description: "Zgoda na przekazanie wskazanego zakresu informacji"
+      },
+      {
+        name: "Bezpieczeństwo informacji",
+        description: "Ocena ryzyka i sposobu zabezpieczenia"
+      }
+    ],
+    fields: [
+      {
+        id: "recipientCompany",
+        label: "Nazwa podmiotu zewnętrznego",
+        type: "text",
+        required: true,
+        placeholder: "Nazwa firmy lub instytucji"
+      },
+      {
+        id: "recipientPerson",
+        label: "Osoba odbierająca",
+        type: "text",
+        required: true,
+        placeholder: "Imię i nazwisko"
+      },
+      {
+        id: "recipientEmail",
+        label: "Adres e-mail odbiorcy",
+        type: "email",
+        required: true,
+        placeholder: "odbiorca@partner.pl"
+      },
+      {
+        id: "dataClassification",
+        label: "Klasyfikacja informacji",
+        type: "select",
+        required: true,
+        options: [
+          "Publiczne",
+          "Wewnętrzne",
+          "Poufne",
+          "Ściśle poufne"
+        ]
+      },
+      {
+        id: "sharingMethod",
+        label: "Sposób udostępnienia",
+        type: "select",
+        required: true,
+        options: [
+          "SharePoint / OneDrive",
+          "Bezpieczny transfer plików",
+          "Szyfrowana wiadomość e-mail",
+          "SFTP",
+          "Inny"
+        ]
+      },
+      {
+        id: "sharingStart",
+        label: "Dostęp od",
+        type: "date",
+        required: true
+      },
+      {
+        id: "sharingEnd",
+        label: "Dostęp do",
+        type: "date",
+        required: true
+      },
+      {
+        id: "personalData",
+        label: "Pliki zawierają dane osobowe",
+        type: "checkbox"
+      },
+      {
+        id: "sharingScope",
+        label: "Zakres i cel udostępnienia",
+        type: "textarea",
+        required: true,
+        full: true,
+        placeholder:
+          "Opisz przekazywane pliki, cel biznesowy i sposób wykorzystania danych"
+      }
+    ]
+  }
+};
+
+/* =========================================================
+   DANE DEMONSTRACYJNE
+   ========================================================= */
+
+const REQUESTS = [
+  {
+    code: "WIT-2026-0131",
+    type: "external-sharing",
+    title: "Udostępnienie dokumentacji partnerowi",
+    category: "Bezpieczeństwo informacji",
+    date: "29.07.2026, 08:42",
+    assignee: "Zespół Bezpieczeństwa IT",
+    priority: "Wysoki",
+    status: "Do uzupełnienia",
+    group: "action",
+    badge: "danger",
+    sla: "Dzisiaj, 16:30",
+    slaValue: 84,
+    department: "Wydział W2",
+    description:
+      "Proszę o umożliwienie przekazania dokumentacji technicznej " +
+      "partnerowi realizującemu część prac w projekcie 39WE.",
+    details: {
+      "Podmiot zewnętrzny": "Partner Projekt Sp. z o.o.",
+      "Osoba odbierająca": "Adam Nowak",
+      "Adres e-mail": "adam.nowak@partner.pl",
+      "Klasyfikacja": "Wewnętrzne",
+      "Sposób udostępnienia": "SharePoint / OneDrive",
+      "Okres dostępu": "29.07.2026 – 30.09.2026",
+      "Dane osobowe": "Nie"
+    },
+    approvals: REQUEST_TYPES["external-sharing"].approvals,
+    attachments: ["zakres_dokumentacji.pdf"]
+  },
+
+  {
+    code: "WIT-2026-0130",
+    type: "virtual-machine",
+    title: "Maszyna testowa dla projektu 39WE",
+    category: "Infrastruktura wirtualna",
+    date: "28.07.2026, 10:15",
+    assignee: "Anna Wójcik",
+    priority: "Standardowy",
+    status: "W realizacji",
+    group: "open",
+    badge: "warning",
+    sla: "01.08.2026, 15:00",
+    slaValue: 62,
+    department: "Wydział W2",
+    description:
+      "Proszę o utworzenie maszyny testowej dla aplikacji wspierającej " +
+      "obsługę dokumentacji technicznej projektu 39WE.",
+    details: {
+      "Operacja": "Utworzenie nowej maszyny",
+      "Środowisko": "Testowe",
+      "System": "Windows Server 2022",
+      "vCPU": "4",
+      "RAM": "16 GB",
+      "Dysk": "200 GB",
+      "Sieć": "Izolowana sieć testowa"
+    },
+    approvals: REQUEST_TYPES["virtual-machine"].approvals,
+    attachments: ["architektura_39WE.pdf"]
+  },
+
+  {
+    code: "WIT-2026-0128",
+    type: "permissions",
+    title: "Nadanie dostępu do systemu IFS",
+    category: "Uprawnienia",
+    date: "24.07.2026, 12:30",
+    assignee: "Piotr Zieliński",
+    priority: "Standardowy",
+    status: "Zakończony",
+    group: "done",
+    badge: "success",
+    sla: "Zrealizowano 25.07.2026",
+    slaValue: 100,
+    department: "Wydział W2",
+    description:
+      "Nadanie dostępu do modułu raportowania operacji produkcyjnych " +
+      "w systemie IFS.",
+    details: {
+      "Operacja": "Nadanie uprawnień",
+      "System": "IFS",
+      "Użytkownik": "Jan Kowalski",
+      "Rola": "Raportowanie operacji produkcyjnych",
+      "Okres": "Bezterminowo",
+      "Dostęp podwyższony": "Nie"
+    },
+    approvals: REQUEST_TYPES.permissions.approvals,
+    attachments: []
+  },
+
+  {
+    code: "WIT-2026-0125",
+    type: "purchase",
+    title: "Zakup monitora dla stanowiska W2-14",
+    category: "Zakupy IT",
+    date: "22.07.2026, 09:05",
+    assignee: "Zespół Zakupów IT",
+    priority: "Wysoki",
+    status: "Oczekuje na akceptację",
+    group: "open",
+    badge: "",
+    sla: "Po akceptacji właściciela budżetu",
+    slaValue: 25,
+    department: "Wydział W2",
+    description:
+      "Zakup monitora 27 cali dla stanowiska konstrukcyjnego W2-14.",
+    details: {
+      "Kategoria": "Sprzęt komputerowy",
+      "Przedmiot": "Monitor 27 cali",
+      "Liczba sztuk": "1",
+      "Szacowany koszt": "1 600 PLN"
+    },
+    approvals: REQUEST_TYPES.purchase.approvals,
+    attachments: ["specyfikacja_monitora.pdf"]
+  },
+
+  {
+    code: "WIT-2026-0122",
+    type: "backup",
+    title: "Odtworzenie katalogu projektu 38WE",
+    category: "Backup i odtwarzanie",
+    date: "19.07.2026, 06:40",
+    assignee: "Zespół Infrastruktury IT",
+    priority: "Krytyczny",
+    status: "Zakończony",
+    group: "done",
+    badge: "success",
+    sla: "Zrealizowano 19.07.2026",
+    slaValue: 100,
+    department: "Wydział W2",
+    description:
+      "Odtworzenie usuniętego katalogu dokumentacji projektu 38WE " +
+      "z kopii zapasowej.",
+    details: {
+      "Operacja": "Odtworzenie danych",
+      "Zasób": "\\\\fileserver\\projekty\\38WE",
+      "Punkt odtworzenia": "18.07.2026, 22:00",
+      "Właściciel danych": "Wydział W2"
+    },
+    approvals: REQUEST_TYPES.backup.approvals,
+    attachments: []
+  }
+];
+
+/* =========================================================
+   STAN APLIKACJI
+   ========================================================= */
+
+let activeFilter = "all";
+let searchPhrase = "";
+let currentStep = 1;
+let currentRequest = null;
+let selectedFiles = [];
+let toastTimer = null;
+let createdRequestCount = 0;
+
+/* =========================================================
+   FUNKCJE POMOCNICZE
+   ========================================================= */
+
+function icon(id) {
+  return `<svg class="icon"><use href="#${id}"></use></svg>`;
+}
+
+function escapeHtml(value) {
+  const element = document.createElement("div");
+  element.textContent = String(value ?? "");
+  return element.innerHTML;
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "Nie określono";
+  }
+
+  const datePart = String(value).split("T")[0];
+  const parts = datePart.split("-");
+
+  if (parts.length !== 3) {
+    return value;
+  }
+
+  return `${parts[2]}.${parts[1]}.${parts[0]}`;
+}
+
+function getTodayIso() {
+  const now = new Date();
+  const local = new Date(
+    now.getTime() - now.getTimezoneOffset() * 60000
+  );
+
+  return local.toISOString().split("T")[0];
+}
+
+function addDaysToToday(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+
+  const local = new Date(
+    date.getTime() - date.getTimezoneOffset() * 60000
+  );
+
+  return local.toISOString().split("T")[0];
+}
+
+function priorityBadgeClass(priority) {
+  if (priority === "Krytyczny") {
+    return "danger";
+  }
+
+  if (priority === "Wysoki") {
+    return "warning";
+  }
+
+  return "neutral";
+}
+
+function getRequestConfig() {
+  const type = document.getElementById("requestType").value;
+  return REQUEST_TYPES[type] || REQUEST_TYPES.purchase;
+}
+
+function getNextRequestCode() {
+  const highest = REQUESTS.reduce((max, request) => {
+    const number = Number(request.code.split("-").pop());
+    return Number.isFinite(number) ? Math.max(max, number) : max;
+  }, 0);
+
+  return `WIT-2026-${String(highest + 1).padStart(4, "0")}`;
+}
+
+function getCurrentDateTimeLabel() {
+  const now = new Date();
+
+  const date = now.toLocaleDateString("pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+
+  const time = now.toLocaleTimeString("pl-PL", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  return `${date}, ${time}`;
+}
+
+/* =========================================================
+   KATALOG I KREATOR WNIOSKU
+   ========================================================= */
+
+function openRequest(type) {
+  currentStep = 1;
+  selectedFiles = [];
+
+  const form = document.getElementById("requestForm");
+  form.reset();
+
+  document.getElementById("priority").value = "Standardowy";
+  document.getElementById("department").value = "Wydział W2";
+  document.getElementById("neededDate").value = addDaysToToday(7);
+  document.getElementById("costCenter").value = "W2-PROD-100";
+
+  if (type && REQUEST_TYPES[type]) {
+    document.getElementById("requestType").value = type;
+  } else {
+    document.getElementById("requestType").value = "purchase";
+  }
+
+  document.getElementById("requestTitle").value = "";
+  document.getElementById("requestDescription").value = "";
+
+  renderFileList();
+  handleRequestTypeChange();
+  showWizardStep();
+
+  document.getElementById("requestOverlay").classList.add("show");
+  document.body.classList.add("no-scroll");
+
+  window.setTimeout(() => {
+    document.getElementById("requestType").focus();
+  }, 50);
+}
+
+function closeRequest() {
+  document.getElementById("requestOverlay").classList.remove("show");
+  document.body.classList.remove("no-scroll");
+}
+
+function requestOverlayClose(event) {
+  if (event.target.id === "requestOverlay") {
+    closeRequest();
+  }
+}
+
+function handleRequestTypeChange() {
+  const config = getRequestConfig();
+
+  document.getElementById("requestMeta").textContent = config.meta;
+  document.getElementById("dynamicSectionTitle").textContent =
+    config.dynamicTitle;
+
+  renderApprovalPath(
+    document.getElementById("approvalPath"),
+    config.approvals
+  );
+
+  renderDynamicFields(config);
+
+  const titleInput = document.getElementById("requestTitle");
+  const descriptionInput = document.getElementById("requestDescription");
+
+  if (!titleInput.value.trim()) {
+    titleInput.placeholder = getTitlePlaceholder(
+      document.getElementById("requestType").value
+    );
+  }
+
+  descriptionInput.placeholder = getDescriptionPlaceholder(
+    document.getElementById("requestType").value
+  );
+}
+
+function getTitlePlaceholder(type) {
+  const placeholders = {
+    "purchase": "Np. Zakup laptopa dla nowego pracownika",
+    "permissions": "Np. Nadanie dostępu do systemu IFS",
+    "remote-work": "Np. Praca zdalna w sierpniu 2026",
+    "backup": "Np. Backup bazy danych projektu 39WE",
+    "virtual-machine": "Np. Maszyna testowa dla nowej aplikacji",
+    "external-sharing": "Np. Udostępnienie dokumentacji partnerowi"
+  };
+
+  return placeholders[type] || "Krótko opisz przedmiot wniosku";
+}
+
+function getDescriptionPlaceholder(type) {
+  const placeholders = {
+    "purchase":
+      "Opisz przeznaczenie zakupu i uzasadnij potrzebę biznesową.",
+    "permissions":
+      "Opisz zadania wymagające dostępu i uzasadnij wskazany zakres uprawnień.",
+    "remote-work":
+      "Opisz organizację pracy oraz zasoby potrzebne poza biurem.",
+    "backup":
+      "Opisz cel wykonania kopii lub odtworzenia danych.",
+    "virtual-machine":
+      "Opisz przeznaczenie środowiska i przewidywany sposób wykorzystania.",
+    "external-sharing":
+      "Opisz cel przekazania plików oraz charakter współpracy z odbiorcą."
+  };
+
+  return placeholders[type] || "Opisz cel i uzasadnienie wniosku.";
+}
+
+function renderApprovalPath(container, approvals) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = approvals.map((approval, index) => `
+    <div class="approval-step">
+      <span class="approval-number">${index + 1}</span>
+
+      <div>
+        <div class="approval-name">
+          ${escapeHtml(approval.name)}
+        </div>
+
+        <div class="approval-description">
+          ${escapeHtml(approval.description)}
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderDynamicFields(config) {
+  const container = document.getElementById("dynamicFields");
+
+  container.innerHTML = config.fields.map(field => {
+    const fullClass = field.full ? " full" : "";
+    const requiredMark = field.required
+      ? ' <span class="required">*</span>'
+      : "";
+
+    if (field.type === "checkbox") {
+      return `
+        <div class="form-field${fullClass}">
+          <label class="checkbox-row">
+            <input
+              type="checkbox"
+              id="${escapeHtml(field.id)}"
+              data-dynamic-field="true"
+              data-field-label="${escapeHtml(field.label)}">
+
+            <span>${escapeHtml(field.label)}</span>
+          </label>
+
+          ${field.hint
+            ? `<div class="field-hint">${escapeHtml(field.hint)}</div>`
+            : ""}
+        </div>
+      `;
+    }
+
+    if (field.type === "select") {
+      return `
+        <div class="form-field${fullClass}">
+          <label class="form-label" for="${escapeHtml(field.id)}">
+            ${escapeHtml(field.label)}${requiredMark}
+          </label>
+
+          <select
+            class="select"
+            id="${escapeHtml(field.id)}"
+            data-dynamic-field="true"
+            data-field-label="${escapeHtml(field.label)}"
+            ${field.required ? 'data-required="true" required' : ""}>
+
+            ${field.options.map(option => `
+              <option value="${escapeHtml(option)}">
+                ${escapeHtml(option)}
+              </option>
+            `).join("")}
+          </select>
+
+          ${field.hint
+            ? `<div class="field-hint">${escapeHtml(field.hint)}</div>`
+            : ""}
+        </div>
+      `;
+    }
+
+    if (field.type === "textarea") {
+      return `
+        <div class="form-field${fullClass}">
+          <label class="form-label" for="${escapeHtml(field.id)}">
+            ${escapeHtml(field.label)}${requiredMark}
+          </label>
+
+          <textarea
+            class="textarea"
+            id="${escapeHtml(field.id)}"
+            data-dynamic-field="true"
+            data-field-label="${escapeHtml(field.label)}"
+            ${field.required ? 'data-required="true" required' : ""}
+            placeholder="${escapeHtml(field.placeholder || "")}"
+          >${escapeHtml(field.value || "")}</textarea>
+
+          ${field.hint
+            ? `<div class="field-hint">${escapeHtml(field.hint)}</div>`
+            : ""}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="form-field${fullClass}">
+        <label class="form-label" for="${escapeHtml(field.id)}">
+          ${escapeHtml(field.label)}${requiredMark}
+        </label>
+
+        <input
+          class="input"
+          id="${escapeHtml(field.id)}"
+          type="${escapeHtml(field.type || "text")}"
+          data-dynamic-field="true"
+          data-field-label="${escapeHtml(field.label)}"
+          ${field.required ? 'data-required="true" required' : ""}
+          ${field.min !== undefined ? `min="${escapeHtml(field.min)}"` : ""}
+          ${field.max !== undefined ? `max="${escapeHtml(field.max)}"` : ""}
+          ${field.step !== undefined ? `step="${escapeHtml(field.step)}"` : ""}
+          value="${escapeHtml(field.value || "")}"
+          placeholder="${escapeHtml(field.placeholder || "")}">
+
+        ${field.hint
+          ? `<div class="field-hint">${escapeHtml(field.hint)}</div>`
+          : ""}
+      </div>
+    `;
+  }).join("");
+
+  setDefaultDynamicDates();
+}
+
+function setDefaultDynamicDates() {
+  const today = getTodayIso();
+  const later = addDaysToToday(30);
+
+  [
+    "accessStart",
+    "remoteStart",
+    "sharingStart"
+  ].forEach(id => {
+    const field = document.getElementById(id);
+
+    if (field && !field.value) {
+      field.value = today;
+    }
+  });
+
+  [
+    "remoteEnd",
+    "sharingEnd"
+  ].forEach(id => {
+    const field = document.getElementById(id);
+
+    if (field && !field.value) {
+      field.value = later;
+    }
+  });
+}
+
+function changeStep(direction) {
+  if (direction > 0 && !validateCurrentStep()) {
+    return;
+  }
+
+  currentStep = Math.max(
+    1,
+    Math.min(3, currentStep + direction)
+  );
+
+  if (currentStep === 3) {
+    fillSummary();
+  }
+
+  showWizardStep();
+}
+
+function showWizardStep() {
+  document.querySelectorAll(".wizard-page").forEach(page => {
+    page.classList.toggle(
+      "hidden",
+      Number(page.dataset.step) !== currentStep
+    );
+  });
+
+  document.querySelectorAll("[data-step-indicator]").forEach(indicator => {
+    const number = Number(indicator.dataset.stepIndicator);
+
+    indicator.classList.toggle("active", number === currentStep);
+    indicator.classList.toggle("complete", number < currentStep);
+  });
+
+  document.getElementById("previousStep").classList.toggle(
+    "hidden",
+    currentStep === 1
+  );
+
+  document.getElementById("nextStep").classList.toggle(
+    "hidden",
+    currentStep === 3
+  );
+
+  document.getElementById("submitRequestButton").classList.toggle(
+    "hidden",
+    currentStep !== 3
+  );
+
+  const dialogBody = document.querySelector(
+    "#requestOverlay .dialog-body"
+  );
+
+  if (dialogBody) {
+    dialogBody.scrollTop = 0;
+  }
+}
+
+function validateCurrentStep() {
+  if (currentStep === 1) {
+    const type = document.getElementById("requestType").value;
+
+    if (!REQUEST_TYPES[type]) {
+      showToast("Wybierz prawidłowy rodzaj wniosku");
+      return false;
+    }
+
+    return true;
+  }
+
+  if (currentStep !== 2) {
+    return true;
+  }
+
+  const title = document.getElementById("requestTitle");
+  const description = document.getElementById("requestDescription");
+
+  if (title.value.trim().length < 5) {
+    showToast("Tytuł powinien zawierać co najmniej 5 znaków");
+    title.focus();
+    return false;
+  }
+
+  if (description.value.trim().length < 10) {
+    showToast("Opis powinien zawierać co najmniej 10 znaków");
+    description.focus();
+    return false;
+  }
+
+  const requiredDynamicFields = [
+    ...document.querySelectorAll(
+      '#dynamicFields [data-required="true"]'
+    )
+  ];
+
+  for (const field of requiredDynamicFields) {
+    if (!String(field.value || "").trim()) {
+      const label = field.dataset.fieldLabel || "Pole";
+
+      showToast(`Uzupełnij pole: ${label}`);
+      field.focus();
+      return false;
+    }
+
+    if (!field.checkValidity()) {
+      const label = field.dataset.fieldLabel || "Pole";
+
+      showToast(`Sprawdź poprawność pola: ${label}`);
+      field.focus();
+      return false;
+    }
+  }
+
+  if (!validateDateRanges()) {
+    return false;
+  }
+
+  return true;
+}
+
+function validateDateRanges() {
+  const ranges = [
+    ["remoteStart", "remoteEnd"],
+    ["sharingStart", "sharingEnd"],
+    ["accessStart", "accessEnd"]
+  ];
+
+  for (const [startId, endId] of ranges) {
+    const start = document.getElementById(startId);
+    const end = document.getElementById(endId);
+
+    if (
+      start &&
+      end &&
+      start.value &&
+      end.value &&
+      end.value < start.value
+    ) {
+      showToast("Data zakończenia nie może być wcześniejsza od rozpoczęcia");
+      end.focus();
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function collectDynamicValues() {
+  const result = {};
+
+  document.querySelectorAll(
+    "#dynamicFields [data-dynamic-field='true']"
+  ).forEach(field => {
+    const label = field.dataset.fieldLabel || field.id;
+
+    if (field.type === "checkbox") {
+      result[label] = field.checked ? "Tak" : "Nie";
+      return;
+    }
+
+    let value = field.value.trim();
+
+    if (
+      value &&
+      (field.type === "date" || field.type === "datetime-local")
+    ) {
+      value = formatDate(value);
+    }
+
+    result[label] = value || "Nie określono";
+  });
+
+  return result;
+}
+
+function fillSummary() {
+  const config = getRequestConfig();
+  const dynamicValues = collectDynamicValues();
+
+  document.getElementById("sumType").textContent = config.label;
+  document.getElementById("sumPriority").textContent =
+    document.getElementById("priority").value;
+  document.getElementById("sumDepartment").textContent =
+    document.getElementById("department").value;
+  document.getElementById("sumDate").textContent =
+    formatDate(document.getElementById("neededDate").value);
+  document.getElementById("sumCostCenter").textContent =
+    document.getElementById("costCenter").value.trim() ||
+    "Nie określono";
+  document.getElementById("sumAttachments").textContent =
+    selectedFiles.length
+      ? selectedFiles.map(file => file.name).join(", ")
+      : "Brak";
+  document.getElementById("sumTitle").textContent =
+    document.getElementById("requestTitle").value.trim();
+  document.getElementById("sumDescription").textContent =
+    document.getElementById("requestDescription").value.trim();
+
+  document.getElementById("sumDynamicFields").innerHTML =
+    Object.entries(dynamicValues).map(([label, value]) => `
+      <div class="summary-item">
+        <div class="summary-label">${escapeHtml(label)}</div>
+        <div class="summary-value">${escapeHtml(value)}</div>
+      </div>
+    `).join("");
+
+  renderApprovalPath(
+    document.getElementById("summaryApprovalPath"),
+    config.approvals
+  );
+}
+
+function saveDraft() {
+  const config = getRequestConfig();
+
+  const draft = {
+    type: document.getElementById("requestType").value,
+    typeLabel: config.label,
+    priority: document.getElementById("priority").value,
+    department: document.getElementById("department").value,
+    title: document.getElementById("requestTitle").value,
+    description: document.getElementById("requestDescription").value,
+    neededDate: document.getElementById("neededDate").value,
+    costCenter: document.getElementById("costCenter").value,
+    details: collectDynamicValues(),
+    savedAt: new Date().toISOString()
+  };
+
+  try {
+    localStorage.setItem(
+      "wnioskiIT-draft",
+      JSON.stringify(draft)
+    );
+
+    closeRequest();
+    showToast("Wersja robocza została zapisana");
+  } catch (error) {
+    showToast("Nie udało się zapisać wersji roboczej");
+  }
+}
+
+function submitRequest() {
+  if (currentStep !== 3) {
+    return;
+  }
+
+  const config = getRequestConfig();
+  const type = document.getElementById("requestType").value;
+  const code = getNextRequestCode();
+  const title = document.getElementById("requestTitle").value.trim();
+  const priority = document.getElementById("priority").value;
+  const details = collectDynamicValues();
+
+  const newRequest = {
+    code,
+    type,
+    title,
+    category: config.category,
+    date: getCurrentDateTimeLabel(),
+    assignee: "Automatyczny przydział",
+    priority,
+    status: "Nowy",
+    group: "open",
+    badge: "",
+    sla: config.sla,
+    slaValue: 5,
+    department: document.getElementById("department").value,
+    description:
+      document.getElementById("requestDescription").value.trim(),
+    details,
+    approvals: config.approvals,
+    attachments: selectedFiles.map(file => file.name)
+  };
+
+  REQUESTS.unshift(newRequest);
+  createdRequestCount += 1;
+
+  closeRequest();
+  renderRequests();
+  updateDashboardMetrics();
+
+  try {
+    localStorage.removeItem("wnioskiIT-draft");
+  } catch (error) {
+    /* Brak działania — localStorage może być niedostępny. */
+  }
+
+  showToast(`Wniosek ${code} został wysłany`);
+}
+
+/* =========================================================
+   ZAŁĄCZNIKI W KREATORZE
+   ========================================================= */
+
+function handleFileSelection(fileList) {
+  addFiles([...fileList]);
+  document.getElementById("attachmentInput").value = "";
+}
+
+function handleDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+  document.getElementById("dropzone").classList.add("dragging");
+}
+
+function handleDragLeave(event) {
+  event.preventDefault();
+  document.getElementById("dropzone").classList.remove("dragging");
+}
+
+function handleFileDrop(event) {
+  event.preventDefault();
+  document.getElementById("dropzone").classList.remove("dragging");
+
+  const files = [...event.dataTransfer.files];
+  addFiles(files);
+}
+
+function addFiles(files) {
+  const availableSlots = 10 - selectedFiles.length;
+
+  if (availableSlots <= 0) {
+    showToast("Można dodać maksymalnie 10 plików");
+    return;
+  }
+
+  const newFiles = files
+    .filter(file => {
+      return !selectedFiles.some(existing => {
+        return (
+          existing.name === file.name &&
+          existing.size === file.size
+        );
+      });
+    })
+    .slice(0, availableSlots);
+
+  selectedFiles.push(...newFiles);
+  renderFileList();
+
+  if (files.length > newFiles.length) {
+    showToast("Pominięto duplikaty lub pliki przekraczające limit");
+  }
+}
+
+function removeSelectedFile(index) {
+  selectedFiles.splice(index, 1);
+  renderFileList();
+}
+
+function renderFileList() {
+  const container = document.getElementById("fileList");
+
+  container.innerHTML = selectedFiles.map((file, index) => `
+    <span class="file-chip">
+      ${icon("i-attach")}
+      <span title="${escapeHtml(file.name)}">
+        ${escapeHtml(file.name)}
+      </span>
+
+      <button
+        class="file-remove"
+        type="button"
+        aria-label="Usuń ${escapeHtml(file.name)}"
+        onclick="removeSelectedFile(${index})">
+        ×
+      </button>
+    </span>
+  `).join("");
+}
+
+/* =========================================================
+   REJESTR WNIOSKÓW
+   ========================================================= */
+
+function renderRequests() {
+  const body = document.getElementById("requestRows");
+
+  const filtered = REQUESTS.filter(request => {
+    const matchesFilter =
+      activeFilter === "all" ||
+      request.group === activeFilter;
+
+    const searchableText = [
+      request.code,
+      request.title,
+      request.category,
+      request.assignee,
+      request.status,
+      request.priority
+    ].join(" ").toLowerCase();
+
+    return (
+      matchesFilter &&
+      (!searchPhrase || searchableText.includes(searchPhrase))
+    );
+  });
+
+  body.innerHTML = filtered.map(request => `
+    <tr onclick="openDetails('${escapeHtml(request.code)}')">
+      <td>
+        <div class="request-code">
+          ${escapeHtml(request.code)}
+        </div>
+
+        <div class="request-title">
+          ${escapeHtml(request.title)}
+        </div>
+
+        <div class="request-category">
+          ${escapeHtml(request.category)}
+        </div>
+      </td>
+
+      <td>${escapeHtml(request.date.split(",")[0])}</td>
+
+      <td>${escapeHtml(request.assignee)}</td>
+
+      <td>
+        <span class="badge ${priorityBadgeClass(request.priority)}">
+          ${escapeHtml(request.priority)}
+        </span>
+      </td>
+
+      <td>
+        <div style="min-width:120px">
+          <div style="font-size:10.5px;color:var(--text-secondary)">
+            ${escapeHtml(request.sla)}
+          </div>
+
+          <div
+            class="progress ${
+              request.slaValue > 80 && request.slaValue < 100
+                ? "danger"
+                : ""
+            }"
+            style="margin-top:5px">
+
+            <span style="width:${request.slaValue}%"></span>
+          </div>
+        </div>
+      </td>
+
+      <td>
+        <span class="badge ${escapeHtml(request.badge)}">
+          ${escapeHtml(request.status)}
+        </span>
+      </td>
+
+      <td>${icon("i-chevron")}</td>
+    </tr>
+  `).join("");
+
+  if (!filtered.length) {
+    body.innerHTML = `
+      <tr>
+        <td colspan="7">
+          <div
+            class="description-box"
+            style="text-align:center;margin:8px 0">
+            Brak wniosków spełniających wybrane kryteria.
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  document.getElementById("resultCount").textContent =
+    `Wyświetlono ${filtered.length} z ${REQUESTS.length} wniosków`;
+}
+
+function setFilter(button) {
+  document.querySelectorAll(".segmented button").forEach(item => {
+    item.classList.remove("active");
+  });
+
+  button.classList.add("active");
+  activeFilter = button.dataset.filter;
+  renderRequests();
+}
+
+function filterRequests(value) {
+  searchPhrase = value.toLowerCase().trim();
+  renderRequests();
+}
+
+function updateDashboardMetrics() {
+  document.getElementById("metricAll").textContent =
+    12 + createdRequestCount;
+
+  document.getElementById("metricOpen").textContent =
+    3 + createdRequestCount;
+
+  document.getElementById("metricAction").textContent = "1";
+  document.getElementById("metricDone").textContent = "8";
+
+  document.getElementById("navRequestCount").textContent =
+    3 + createdRequestCount;
+}
+
+/* =========================================================
+   PANEL SZCZEGÓŁÓW
+   ========================================================= */
+
+function openDetails(code) {
+  const request = REQUESTS.find(item => item.code === code);
+
+  if (!request) {
+    showToast("Nie znaleziono wskazanego wniosku");
+    return;
+  }
+
+  currentRequest = request;
+
+  document.getElementById("drawerHeaderTitle").textContent =
+    request.title;
+  document.getElementById("detailCode").textContent =
+    request.code;
+  document.getElementById("detailTitle").textContent =
+    request.title;
+  document.getElementById("detailMeta").textContent =
+    `Utworzono ${request.date} · Jan Kowalski`;
+  document.getElementById("detailCategory").textContent =
+    request.category;
+  document.getElementById("detailAssignee").textContent =
+    request.assignee;
+  document.getElementById("detailDepartment").textContent =
+    request.department || "Wydział W2";
+  document.getElementById("detailSla").textContent =
+    request.sla;
+  document.getElementById("detailDescription").textContent =
+    request.description;
+
+  const status = document.getElementById("detailStatus");
+  status.textContent = request.status;
+  status.className = `badge ${request.badge || ""}`;
+
+  const priority = document.getElementById("detailPriority");
+  priority.textContent = request.priority;
+  priority.className =
+    `badge ${priorityBadgeClass(request.priority)}`;
+
+  const progress = document.getElementById("detailSlaProgress");
+  const progressBar = progress.querySelector("span");
+
+  progressBar.style.width = `${request.slaValue}%`;
+  progress.className =
+    `progress ${
+      request.slaValue > 80 && request.slaValue < 100
+        ? "danger"
+        : ""
+    }`;
+
+  document.getElementById("detailSlaPercent").textContent =
+    `${request.slaValue}%`;
+
+  document.getElementById("detailSlaLabel").textContent =
+    request.slaValue === 100
+      ? "Realizacja zakończona"
+      : request.slaValue > 80
+        ? "Termin SLA jest zagrożony"
+        : "Realizacja zgodna z SLA";
+
+  document.getElementById("detailDynamicFields").innerHTML =
+    Object.entries(request.details || {}).map(([label, value]) => `
+      <div class="detail-field">
+        <div class="detail-label">${escapeHtml(label)}</div>
+        <div class="detail-value">${escapeHtml(value)}</div>
+      </div>
+    `).join("");
+
+  renderApprovalPath(
+    document.getElementById("detailApprovalPath"),
+    request.approvals || []
+  );
+
+  document.getElementById("historyCreated").textContent =
+    `Jan Kowalski · ${request.date}`;
+  document.getElementById("historyAssignee").textContent =
+    request.assignee;
+  document.getElementById("historyCurrentStage").textContent =
+    request.status;
+
+  renderDrawerAttachments();
+  switchDetailTab(
+    document.querySelector(
+      '.drawer-tab[data-tab="overview"]'
+    )
+  );
+
+  document.getElementById("drawerBackdrop").classList.add("show");
+  document.getElementById("detailsDrawer").classList.add("show");
+  document.body.classList.add("no-scroll");
+}
+
+function closeDetails() {
+  document.getElementById("drawerBackdrop").classList.remove("show");
+  document.getElementById("detailsDrawer").classList.remove("show");
+  document.body.classList.remove("no-scroll");
+}
+
+function switchDetailTab(button) {
+  if (!button) {
+    return;
+  }
+
+  document.querySelectorAll(".drawer-tab").forEach(tab => {
+    tab.classList.remove("active");
+  });
+
+  button.classList.add("active");
+
+  document.querySelectorAll(".detail-panel").forEach(panel => {
+    panel.classList.toggle(
+      "hidden",
+      panel.dataset.panel !== button.dataset.tab
+    );
+  });
+}
+
+function renderDrawerAttachments() {
+  if (!currentRequest) {
+    return;
+  }
+
+  const attachments = currentRequest.attachments || [];
+
+  document.getElementById("drawerAttachmentCount").textContent =
+    `(${attachments.length})`;
+
+  const container = document.getElementById("drawerAttachmentList");
+
+  if (!attachments.length) {
+    container.innerHTML = `
+      <div class="description-box">
+        Do wniosku nie dodano żadnych załączników.
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = attachments.map(name => `
+    <div
+      class="detail-field"
+      style="
+        display:flex;
+        align-items:center;
+        gap:11px;
+        margin-bottom:9px
+      ">
+
+      <span class="request-icon">
+        ${icon("i-attach")}
+      </span>
+
+      <div style="min-width:0;flex:1">
+        <div
+          class="detail-value"
+          style="
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap
+          ">
+          ${escapeHtml(name)}
+        </div>
+
+        <div class="detail-label">
+          Załącznik do wniosku
+        </div>
+      </div>
+
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Pobierz ${escapeHtml(name)}"
+        onclick="showToast('Pobieranie pliku: ${escapeHtml(name)}')">
+        ${icon("i-download")}
+      </button>
+    </div>
+  `).join("");
+}
+
+function addDrawerAttachments(fileList) {
+  if (!currentRequest || !fileList.length) {
+    return;
+  }
+
+  if (!Array.isArray(currentRequest.attachments)) {
+    currentRequest.attachments = [];
+  }
+
+  [...fileList].forEach(file => {
+    if (!currentRequest.attachments.includes(file.name)) {
+      currentRequest.attachments.push(file.name);
+    }
+  });
+
+  renderDrawerAttachments();
+  showToast("Załączniki zostały dodane");
+}
+
+/* =========================================================
+   AKCEPTACJE
+   ========================================================= */
+
+function approveRequest(button) {
+  const row = button.closest(".approval-row");
+
+  if (!row) {
+    return;
+  }
+
+  button.disabled = true;
+  row.style.opacity = ".45";
+
+  window.setTimeout(() => {
+    row.remove();
+    updateApprovalCounter();
+    showToast("Wniosek został zaakceptowany");
+  }, 300);
+}
+
+function updateApprovalCounter() {
+  const count = document.querySelectorAll(
+    "#approvalList .approval-row"
+  ).length;
+
+  document.getElementById("approvalNavCount").textContent = count;
+  document.getElementById("approvalHeaderCount").textContent =
+    count === 1
+      ? "1 oczekująca"
+      : `${count} oczekujące`;
+
+  if (count === 0) {
+    document.getElementById("approvalList").innerHTML = `
+      <div class="description-box" style="margin:14px 0">
+        Brak wniosków oczekujących na Twoją akceptację.
+      </div>
+    `;
+  }
+}
+
+/* =========================================================
+   PALETA POLECEŃ
+   ========================================================= */
+
+function openCommandPalette() {
+  document.getElementById("commandOverlay").classList.add("show");
+  document.body.classList.add("no-scroll");
+
+  const input = document.getElementById("commandInput");
+  input.value = "";
+  filterCommands("");
+
+  window.setTimeout(() => {
+    input.focus();
+  }, 50);
+}
+
+function closeCommandPalette() {
+  document.getElementById("commandOverlay").classList.remove("show");
+  document.body.classList.remove("no-scroll");
+}
+
+function commandOverlayClose(event) {
+  if (event.target.id === "commandOverlay") {
+    closeCommandPalette();
+  }
+}
+
+function filterCommands(value) {
+  const phrase = value.toLowerCase().trim();
+
+  document.querySelectorAll(".command-item").forEach(item => {
+    const searchableText =
+      (item.dataset.search || item.textContent).toLowerCase();
+
+    item.classList.toggle(
+      "hidden",
+      !searchableText.includes(phrase)
+    );
+  });
+
+  document.querySelectorAll(".command-section").forEach(section => {
+    let next = section.nextElementSibling;
+    let hasVisibleItem = false;
+
+    while (next && !next.classList.contains("command-section")) {
+      if (
+        next.classList.contains("command-item") &&
+        !next.classList.contains("hidden")
+      ) {
+        hasVisibleItem = true;
+      }
+
+      next = next.nextElementSibling;
+    }
+
+    section.classList.toggle("hidden", !hasVisibleItem);
+  });
+}
+
+/* =========================================================
+   NAWIGACJA I RESPONSYWNOŚĆ
+   ========================================================= */
+
+function activateNav(button) {
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.remove("active");
+  });
+
+  button.classList.add("active");
+  closeMenu();
+}
+
+function goTo(id) {
+  const target = document.getElementById(id);
+
+  if (target) {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
+  closeMenu();
+}
+
+function openMenu() {
+  document.getElementById("sidebar").classList.add("show");
+  document.getElementById("mobileBackdrop").classList.add("show");
+}
+
+function closeMenu() {
+  document.getElementById("sidebar").classList.remove("show");
+  document.getElementById("mobileBackdrop").classList.remove("show");
+}
+
+/* =========================================================
+   MOTYW
+   ========================================================= */
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme;
+  const next = current === "dark" ? "light" : "dark";
+
+  document.documentElement.dataset.theme = next;
+
+  try {
+    localStorage.setItem("wnioskiIT-theme", next);
+  } catch (error) {
+    /* Brak działania — localStorage może być niedostępny. */
+  }
+
+  updateThemeIcon();
+
+  showToast(
+    next === "dark"
+      ? "Włączono ciemny motyw"
+      : "Włączono jasny motyw"
+  );
+}
+
+function updateThemeIcon() {
+  const use = document.getElementById("themeIconUse");
+
+  if (!use) {
+    return;
+  }
+
+  const isDark =
+    document.documentElement.dataset.theme === "dark";
+
+  use.setAttribute(
+    "href",
+    isDark ? "#i-sun" : "#i-moon"
+  );
+}
+
+/* =========================================================
+   POWIADOMIENIA I MENU UŻYTKOWNIKA
+   ========================================================= */
+
+function toggleNotifications(event) {
+  event.stopPropagation();
+
+  document.getElementById("userMenu").classList.remove("show");
+  document.getElementById("notifications").classList.toggle("show");
+}
+
+function toggleUserMenu(event) {
+  event.stopPropagation();
+
+  document.getElementById("notifications").classList.remove("show");
+  document.getElementById("userMenu").classList.toggle("show");
+}
+
+function markNotifications() {
+  document.getElementById("notificationDot").style.display = "none";
+  document.getElementById("notifications").classList.remove("show");
+
+  showToast("Powiadomienia oznaczono jako przeczytane");
+}
+
+/* =========================================================
+   KOMUNIKATY I ODŚWIEŻANIE
+   ========================================================= */
+
+function refreshData() {
+  const button = event?.currentTarget;
+
+  if (button) {
+    button.disabled = true;
+  }
+
+  window.setTimeout(() => {
+    renderRequests();
+    updateDashboardMetrics();
+
+    if (button) {
+      button.disabled = false;
+    }
+
+    showToast("Dane zostały odświeżone");
+  }, 450);
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+
+  document.getElementById("toastText").textContent = message;
+  toast.classList.add("show");
+
+  window.clearTimeout(toastTimer);
+
+  toastTimer = window.setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2700);
+}
+
+/* =========================================================
+   OBSŁUGA ZDARZEŃ GLOBALNYCH
+   ========================================================= */
+
+document.addEventListener("click", event => {
+  ["notifications", "userMenu"].forEach(id => {
+    const element = document.getElementById(id);
+
+    if (element && !element.contains(event.target)) {
+      element.classList.remove("show");
+    }
+  });
+});
+
+document.addEventListener("keydown", event => {
+  const activeTag = document.activeElement?.tagName;
+  const isFormField = [
+    "INPUT",
+    "TEXTAREA",
+    "SELECT"
+  ].includes(activeTag);
+
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    event.key.toLowerCase() === "k"
+  ) {
+    event.preventDefault();
+    openCommandPalette();
+    return;
+  }
+
+  if (event.key === "Escape") {
+    const commandOpen =
+      document.getElementById("commandOverlay").classList.contains("show");
+    const requestOpen =
+      document.getElementById("requestOverlay").classList.contains("show");
+    const drawerOpen =
+      document.getElementById("detailsDrawer").classList.contains("show");
+
+    if (commandOpen) {
+      closeCommandPalette();
+    } else if (requestOpen) {
+      closeRequest();
+    } else if (drawerOpen) {
+      closeDetails();
+    } else {
+      closeMenu();
+    }
+
+    document.getElementById("notifications").classList.remove("show");
+    document.getElementById("userMenu").classList.remove("show");
+    return;
+  }
+
+  if (
+    event.key.toLowerCase() === "n" &&
+    !isFormField &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.altKey
+  ) {
+    event.preventDefault();
+    openRequest();
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 800) {
+    closeMenu();
+  }
+});
+
+const colorSchemeQuery = window.matchMedia(
+  "(prefers-color-scheme: dark)"
+);
+
+colorSchemeQuery.addEventListener("change", event => {
+  let savedTheme = null;
+
+  try {
+    savedTheme = localStorage.getItem("wnioskiIT-theme");
+  } catch (error) {
+    savedTheme = null;
+  }
+
+  if (!savedTheme) {
+    document.documentElement.dataset.theme =
+      event.matches ? "dark" : "light";
+
+    updateThemeIcon();
+  }
+});
+
+/* =========================================================
+   INICJALIZACJA
+   ========================================================= */
+
+function initializeApplication() {
+  updateThemeIcon();
+  renderRequests();
+  updateDashboardMetrics();
+  updateApprovalCounter();
+
+  document.getElementById("neededDate").min = getTodayIso();
+
+  Object.keys(REQUEST_TYPES).forEach(type => {
+    if (!REQUEST_TYPES[type].approvals) {
+      REQUEST_TYPES[type].approvals = [];
+    }
+  });
+}
+
+initializeApplication();
+</script>
+</body>
+</html>
