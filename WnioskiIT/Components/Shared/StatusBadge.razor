@@ -1,0 +1,7 @@
+@* Renders a coloured status badge *@
+<span class="badge @CssClass">@Text</span>
+
+@code {
+    [Parameter, EditorRequired] public string Text { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string CssClass { get; set; } = string.Empty;
+}

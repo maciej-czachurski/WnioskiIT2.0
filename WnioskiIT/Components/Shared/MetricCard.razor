@@ -1,0 +1,20 @@
+@* Dashboard metric card *@
+<article class="metric @Variant">
+    <div class="metric-top">
+        <span>@Label</span>
+        <span class="metric-icon">
+            <FluentIcon Value="@Icon" Width="20" />
+        </span>
+    </div>
+    <div class="metric-value">@Value</div>
+    <div class="metric-caption">@Caption</div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public int Value { get; set; }
+    [Parameter, EditorRequired] public string Caption { get; set; } = string.Empty;
+    [Parameter] public Icon? Icon { get; set; }
+    /// <summary>Optional variant CSS class: warning | danger | success</summary>
+    [Parameter] public string Variant { get; set; } = string.Empty;
+}

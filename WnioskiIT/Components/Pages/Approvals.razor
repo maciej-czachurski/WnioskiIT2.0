@@ -1,0 +1,67 @@
+@page "/akceptacje"
+@rendermode InteractiveServer
+@inject IApprovalService ApprovalService
+@inject AppToastService Toast
+
+<section class="page-header">
+  <div>
+    <div class="breadcrumbs">
+      <a href="/">wnioskiIT</a>
+      <span>/</span>
+      <span class="current">Moje akceptacje</span>
+    </div>
+    <h1>Moje akceptacje</h1>
+    <p class="page-description">Wnioski wymagające Twojej decyzji.</p>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <div class="card-header-text">
+      <h2 class="card-title">Oczekujące akceptacje</h2>
+      <div class="card-description">Wnioski wymagające Twojej decyzji</div>
+    </div>
+    <span class="badge warning">@_pending.Count oczekujące</span>
+  </div>
+  <div class="approval-list">
+    @if (!_pending.Any())
+    {
+      <div class="description-box" style="margin:14px 0">
+        Brak wniosków oczekujących na Twoją akceptację.
+      </div>
+    }
+    else
+    {
+      @foreach (var appr in _pending)
+      {
+        var id = appr.Id;
+        <div class="approval-row">
+          <span class="approval-icon">
+            <svg class="icon"><use href="#i-@(appr.IconKey == "permissions" ? "key" : "cart")"/></svg>
+          </span>
+          <div class="approval-body">
+            <div class="approval-title">@appr.Title</div>
+            <div class="approval-meta">@appr.SubTitle</div>
+          </div>
+          <button class="btn primary" type="button" @onclick="() => ApproveAsync(id)">Akceptuj</button>
+        </div>
+      }
+    }
+  </div>
+</section>
+
+@code {
+    private List<PendingApproval> _pending = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _pending = await ApprovalService.GetPendingAsync();
+    }
+
+    private async Task ApproveAsync(int id)
+    {
+        await ApprovalService.ApproveAsync(id);
+        _pending = await ApprovalService.GetPendingAsync();
+        Toast.Show("Wniosek został zaakceptowany");
+    }
+}

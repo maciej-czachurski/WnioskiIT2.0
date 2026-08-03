@@ -1,0 +1,11 @@
+@* Summary item used in wizard step 3 *@
+<div class="summary-item @(Full ? "full" : "")">
+    <div class="summary-label">@Label</div>
+    <div class="summary-value">@Value</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
+    [Parameter] public bool Full { get; set; }
+}

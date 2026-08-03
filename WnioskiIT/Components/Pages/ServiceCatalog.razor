@@ -1,0 +1,34 @@
+@page "/katalog"
+@rendermode InteractiveServer
+@inject AppToastService Toast
+
+<section class="page-header">
+  <div>
+    <div class="breadcrumbs">
+      <a href="/">wnioskiIT</a>
+      <span>/</span>
+      <span class="current">Katalog usług</span>
+    </div>
+    <h1>Katalog usług IT</h1>
+    <p class="page-description">Wybierz rodzaj sprawy, aby uruchomić właściwy formularz i ścieżkę akceptacji.</p>
+  </div>
+</section>
+
+<div class="services" style="padding:0;margin-bottom:18px">
+  @foreach (var kv in RequestTypeRegistry.All)
+  {
+    var typeKey = kv.Key;
+    var cfg = kv.Value;
+    <button class="service" type="button" @onclick='() => Toast.Show($"Otwarto wniosek: {cfg.Label}")'>
+      <span class="service-icon">
+        <svg class="icon"><use href="#i-@cfg.IconKey"/></svg>
+      </span>
+      <span class="service-body">
+        <span class="service-name">@cfg.Label</span>
+        <span class="service-description">@cfg.Meta</span>
+        <span class="service-meta">SLA: @cfg.Sla · @cfg.DefaultAssignee</span>
+      </span>
+      <svg class="icon service-arrow"><use href="#i-chevron"/></svg>
+    </button>
+  }
+</div>

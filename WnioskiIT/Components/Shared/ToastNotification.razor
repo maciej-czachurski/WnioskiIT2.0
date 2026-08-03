@@ -1,0 +1,38 @@
+@inject AppToastService Toast
+@implements IDisposable
+
+<div class="toast @(_show ? "show" : "")" role="status" aria-live="polite">
+    <svg class="icon"><use href="#i-check" /></svg>
+    <span>@_message</span>
+</div>
+
+@code {
+    private bool _show;
+    private string _message = string.Empty;
+    private Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        Toast.OnShow += HandleShow;
+    }
+
+    private void HandleShow(string message)
+    {
+        _message = message;
+        _show = true;
+        InvokeAsync(StateHasChanged);
+
+        _timer?.Dispose();
+        _timer = new Timer(_ =>
+        {
+            _show = false;
+            InvokeAsync(StateHasChanged);
+        }, null, 2700, Timeout.Infinite);
+    }
+
+    public void Dispose()
+    {
+        Toast.OnShow -= HandleShow;
+        _timer?.Dispose();
+    }
+}
