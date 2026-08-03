@@ -1,0 +1,156 @@
+@page "/moje-wnioski"
+@rendermode InteractiveServer
+@inject IRequestService RequestService
+@inject AppToastService Toast
+
+<section class="page-header">
+  <div>
+    <div class="breadcrumbs">
+      <a href="/">wnioskiIT</a>
+      <span>/</span>
+      <span class="current">Moje wnioski</span>
+    </div>
+    <h1>Moje wnioski</h1>
+    <p class="page-description">Rejestr spraw zgłoszonych do Działu IT</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn" type="button" @onclick='() => Toast.Show("Przygotowano eksport XLSX")'>
+      <svg class="icon"><use href="#i-export"/></svg>
+      Eksportuj
+    </button>
+    <button class="btn primary" type="button" @onclick="OpenNewRequest">
+      <svg class="icon"><use href="#i-plus"/></svg>
+      Nowy wniosek
+    </button>
+  </div>
+</section>
+
+<section class="card requests-card">
+  <div class="card-header">
+    <div class="card-header-text">
+      <h2 class="card-title">Rejestr wniosków</h2>
+      <div class="card-description">Rejestr spraw zgłoszonych do Działu IT</div>
+    </div>
+  </div>
+
+  <div class="command-bar">
+    <div class="segmented" aria-label="Filtr statusu">
+      <button class="@(_filter == "all" ? "active" : "")" type="button" @onclick='() => SetFilter("all")'>Wszystkie</button>
+      <button class="@(_filter == "open" ? "active" : "")" type="button" @onclick='() => SetFilter("open")'>W realizacji</button>
+      <button class="@(_filter == "action" ? "active" : "")" type="button" @onclick='() => SetFilter("action")'>Do uzupełnienia</button>
+      <button class="@(_filter == "done" ? "active" : "")" type="button" @onclick='() => SetFilter("done")'>Zakończone</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" type="button" @onclick='() => Toast.Show("Otwarto filtry zaawansowane")'>
+      <svg class="icon"><use href="#i-filter"/></svg>
+      Filtry
+    </button>
+    <div class="table-search">
+      <svg class="icon"><use href="#i-search"/></svg>
+      <input type="search" placeholder="Szukaj…" aria-label="Szukaj w rejestrze"
+             @bind="_search" @bind:event="oninput" />
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Wniosek</th>
+          <th>Data</th>
+          <th>Realizujący</th>
+          <th>Priorytet</th>
+          <th>SLA</th>
+          <th>Status</th>
+          <th aria-label="Działania"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var req in Filtered)
+        {
+          var reqId = req.Id;
+          <tr @onclick="() => OpenDetails(reqId)" style="cursor:pointer">
+            <td>
+              <div class="request-code">@req.Code</div>
+              <div class="request-title">@req.Title</div>
+              <div class="request-category">@req.Category</div>
+            </td>
+            <td>@req.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</td>
+            <td>@(req.AssigneeName ?? "—")</td>
+            <td><StatusBadge Text="@req.Priority.ToLabel()" CssClass="@req.Priority.ToBadgeClass()" /></td>
+            <td>
+              <div style="min-width:120px">
+                <div style="font-size:10.5px;color:var(--text-secondary)">@req.SlaDeadlineLabel</div>
+                <div class="progress @(req.SlaProgressPercent is > 80 and < 100 ? "danger" : "")" style="margin-top:5px">
+                  <span style="width:@req.SlaProgressPercent%"></span>
+                </div>
+              </div>
+            </td>
+            <td><StatusBadge Text="@req.Status.ToLabel()" CssClass="@req.Status.ToBadgeClass()" /></td>
+            <td><svg class="icon"><use href="#i-chevron"/></svg></td>
+          </tr>
+        }
+        @if (!Filtered.Any())
+        {
+          <tr>
+            <td colspan="7">
+              <div class="description-box" style="text-align:center;margin:8px 0">
+                Brak wniosków spełniających wybrane kryteria.
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <span>Wyświetlono @Filtered.Count() z @_all.Count wniosków</span>
+  </div>
+</section>
+
+<RequestDetailsDrawer @ref="_drawer" />
+
+@code {
+    private List<ItRequest> _all = [];
+    private string _filter = "all";
+    private string _search = string.Empty;
+    private RequestDetailsDrawer? _drawer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _all = await RequestService.GetAllAsync();
+    }
+
+    private IEnumerable<ItRequest> Filtered => _all.Where(r =>
+    {
+        var matchFilter = _filter switch
+        {
+            "open"   => r.Status.ToGroup() == "open",
+            "action" => r.Status.ToGroup() == "action",
+            "done"   => r.Status.ToGroup() == "done",
+            _ => true
+        };
+        if (!matchFilter) return false;
+
+        if (!string.IsNullOrWhiteSpace(_search))
+        {
+            var term = _search.ToLower();
+            return r.Code.ToLower().Contains(term)
+                || r.Title.ToLower().Contains(term)
+                || r.Category.ToLower().Contains(term)
+                || (r.AssigneeName?.ToLower().Contains(term) ?? false)
+                || r.Status.ToLabel().ToLower().Contains(term);
+        }
+        return true;
+    });
+
+    private void SetFilter(string f) => _filter = f;
+
+    private async Task OpenDetails(int id)
+    {
+        if (_drawer is not null) await _drawer.OpenAsync(id);
+    }
+
+    private void OpenNewRequest() { /* wizard opened from layout */ }
+}

@@ -1,0 +1,287 @@
+@inherits LayoutComponentBase
+@inject INotificationService NotificationService
+@inject IApprovalService ApprovalService
+@inject AppToastService Toast
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>wnioskiIT — Portal obsługi IT</PageTitle>
+
+<!-- SVG Icon defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5 10v10h5v-6h4v6h5V10"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 4 2c-1 .7-1.7 1.2-1.7 2.5M12 17h.01"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 6-3 7-3 8h18c0-1-3-2-3-8M10 21h4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 15.3A8.5 8.5 0 0 1 8.7 3.5 9 9 0 1 0 20.5 15.3z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2l2 11h10l3-8H6M9 20h.01M17 20h.01"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8M16 7l2 2"/></symbol>
+    <symbol id="i-house" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5 10v10h14V10M9 20v-6h6v6"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-warning" viewBox="0 0 24 24"><path d="M12 3 2 21h20zM12 9v5M12 18h.01"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M19 12a7 7 0 1 0-2 5"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7"/></symbol>
+    <symbol id="i-attach" viewBox="0 0 24 24"><path d="m8 12 6-6a4 4 0 0 1 6 6l-8 8a6 6 0 0 1-8-8l8-8"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-comment" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6zM9 12l2 2 4-4"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7-.7-1.7.9-1.9-2.1-2.1-1.9.9-1.7-.7L10.5 2h-3l-.7 2.3-1.7.7-1.9-.9-2.1 2.1.9 1.9-.7 1.7-2 .7v3l2 .7.7 1.7-.9 1.9 2.1 2.1 1.9-.9 1.7.7.7 2.3h3l.7-2.3 1.7-.7 1.9.9 2.1-2.1-.9-1.9.7-1.7z" transform="translate(2) scale(.85)"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <button class="mobile-backdrop @(_menuOpen ? "show" : "")" type="button"
+          aria-label="Zamknij menu" @onclick="CloseMenu"></button>
+
+  <aside class="sidebar @(_menuOpen ? "show" : "")">
+    <div class="brand">
+      <div class="brand-mark"><svg class="icon"><use href="#i-file"/></svg></div>
+      <div>
+        <div class="brand-name">wnioski<span>IT</span></div>
+        <div class="brand-subtitle">Portal obsługi IT</div>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="Menu główne">
+      <div class="nav-title">Menu główne</div>
+
+      <NavLink class="nav-item" href="" Match="NavLinkMatch.All" @onclick="CloseMenu"
+               ActiveClass="active">
+        <svg class="icon"><use href="#i-home"/></svg>
+        <span class="nav-label">Pulpit</span>
+      </NavLink>
+
+      <NavLink class="nav-item" href="moje-wnioski" ActiveClass="active" @onclick="CloseMenu">
+        <svg class="icon"><use href="#i-file"/></svg>
+        <span class="nav-label">Moje wnioski</span>
+        @if (_openRequestCount > 0) { <span class="nav-count">@_openRequestCount</span> }
+      </NavLink>
+
+      <button class="nav-item" type="button" @onclick="OpenNewRequest">
+        <svg class="icon"><use href="#i-plus"/></svg>
+        <span class="nav-label">Nowy wniosek</span>
+      </button>
+
+      <NavLink class="nav-item" href="katalog" ActiveClass="active" @onclick="CloseMenu">
+        <svg class="icon"><use href="#i-grid"/></svg>
+        <span class="nav-label">Katalog usług</span>
+      </NavLink>
+
+      <div class="nav-title">Zarządzanie</div>
+
+      <NavLink class="nav-item" href="akceptacje" ActiveClass="active" @onclick="CloseMenu">
+        <svg class="icon"><use href="#i-shield"/></svg>
+        <span class="nav-label">Moje akceptacje</span>
+        @if (_approvalCount > 0) { <span class="nav-count">@_approvalCount</span> }
+      </NavLink>
+
+      <button class="nav-item" type="button" @onclick='() => Toast.Show("Otwarto raporty i analizy")'>
+        <svg class="icon"><use href="#i-grid"/></svg>
+        <span class="nav-label">Raporty i analizy</span>
+      </button>
+
+      <div class="nav-title">Pomoc</div>
+
+      <button class="nav-item" type="button" @onclick='() => Toast.Show("Otwarto bazę wiedzy")'>
+        <svg class="icon"><use href="#i-help"/></svg>
+        <span class="nav-label">Baza wiedzy</span>
+      </button>
+
+      <button class="nav-item" type="button" @onclick='() => Toast.Show("Service Desk: wew. 1234")'>
+        <svg class="icon"><use href="#i-comment"/></svg>
+        <span class="nav-label">Kontakt z IT</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="profile" type="button" @onclick="ToggleUserMenu">
+        <span class="avatar">JK</span>
+        <span class="profile-info">
+          <span class="profile-name">Jan Kowalski</span>
+          <span class="profile-role">Pracownik · Wydział W2</span>
+        </span>
+        <svg class="icon"><use href="#i-chevron"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-button menu-button" type="button" aria-label="Otwórz menu" @onclick="OpenMenu">
+        <svg class="icon"><use href="#i-menu"/></svg>
+      </button>
+
+      <div class="search" role="button" tabindex="0" aria-label="Otwórz wyszukiwanie"
+           @onclick="OpenCommandPaletteAsync">
+        <svg class="icon"><use href="#i-search"/></svg>
+        <input type="search" placeholder="Szukaj lub wpisz polecenie…" aria-label="Szukaj" readonly/>
+        <span class="search-shortcut">Ctrl K</span>
+      </div>
+
+      <div class="spacer"></div>
+
+      <button class="icon-button" type="button" aria-label="Zmień motyw" @onclick="ToggleThemeAsync">
+        <svg class="icon"><use href="@(_isDark ? "#i-sun" : "#i-moon")"/></svg>
+      </button>
+
+      <button class="icon-button" type="button" aria-label="Powiadomienia" @onclick="ToggleNotifications">
+        <svg class="icon"><use href="#i-bell"/></svg>
+        @if (_unreadCount > 0) { <span class="notification-dot"></span> }
+      </button>
+
+      <button class="profile desktop-profile" type="button" @onclick="ToggleUserMenu">
+        <span class="avatar">JK</span>
+        <span class="profile-info">
+          <span class="profile-name">Jan Kowalski</span>
+          <span class="profile-role">Wydział W2</span>
+        </span>
+      </button>
+    </header>
+
+    <div class="content">
+    @Body
+    </div>
+  </main>
+</div>
+
+<!-- Notifications popover -->
+<div class="popover @(_notificationsOpen ? "show" : "")">
+  <div class="popover-header">
+    <strong>Powiadomienia</strong>
+    <button class="btn subtle" type="button" @onclick="MarkNotificationsReadAsync">Oznacz jako przeczytane</button>
+  </div>
+  @foreach (var n in _notifications)
+  {
+    <div class="notification">
+      <span class="notification-icon @(n.IsWarning ? "warning" : "")">
+        <svg class="icon"><use href="@(n.IsWarning ? "#i-warning" : "#i-check")"/></svg>
+      </span>
+      <div>
+        <div class="notification-title">@n.Title</div>
+        <div class="notification-text">@n.Text</div>
+        <div class="notification-time">@FormatTimeAgo(n.CreatedAt)</div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- User menu -->
+<div class="popover user-menu @(_userMenuOpen ? "show" : "")">
+  <div class="user-menu-head">
+    <span class="avatar">JK</span>
+    <div>
+      <strong>Jan Kowalski</strong>
+      <div class="profile-role">jan.kowalski@firma.pl</div>
+    </div>
+  </div>
+  <button class="user-menu-item" type="button"
+          @onclick='() => { ClosePopovers(); Toast.Show("Otwarto profil użytkownika"); }'>
+    <svg class="icon"><use href="#i-person"/></svg> Profil użytkownika
+  </button>
+  <button class="user-menu-item" type="button"
+          @onclick='() => { ClosePopovers(); Toast.Show("Otwarto ustawienia"); }'>
+    <svg class="icon"><use href="#i-settings"/></svg> Ustawienia
+  </button>
+  <button class="user-menu-item" type="button"
+          @onclick='() => { ClosePopovers(); Toast.Show("Wylogowanie — funkcja demonstracyjna"); }'>
+    <svg class="icon"><use href="#i-chevron"/></svg> Wyloguj
+  </button>
+</div>
+
+<RequestWizard @ref="_wizard" OnRequestCreated="RefreshCountsAsync" />
+<CommandPalette @ref="_commandPalette"
+                OnNavigate="HandleNavigate"
+                OnOpenRequest="OpenNewRequestOfType"
+                OnOpenDetails="HandleOpenDetails"
+                OnToggleTheme="ToggleThemeAsync" />
+<ToastNotification />
+
+@code {
+    private bool _menuOpen, _notificationsOpen, _userMenuOpen, _isDark;
+    private int _unreadCount, _approvalCount, _openRequestCount;
+    private List<AppNotification> _notifications = [];
+
+    private RequestWizard? _wizard;
+    private CommandPalette? _commandPalette;
+    private DotNetObjectReference<MainLayout>? _objRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _notifications = await NotificationService.GetAllAsync();
+        _unreadCount = _notifications.Count(n => !n.IsRead);
+        _approvalCount = await ApprovalService.GetPendingCountAsync();
+        _openRequestCount = _approvalCount + 1; // demo count
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _objRef = DotNetObjectReference.Create(this);
+        try { await JS.InvokeVoidAsync("blazorApp.init", _objRef); } catch { }
+    }
+
+    private void OpenMenu() { _menuOpen = true; ClosePopovers(); }
+    private void CloseMenu() => _menuOpen = false;
+    private void ClosePopovers() { _notificationsOpen = false; _userMenuOpen = false; }
+    private void ToggleNotifications() { _notificationsOpen = !_notificationsOpen; _userMenuOpen = false; }
+    private void ToggleUserMenu() { _userMenuOpen = !_userMenuOpen; _notificationsOpen = false; }
+
+    private async Task MarkNotificationsReadAsync()
+    {
+        await NotificationService.MarkAllReadAsync();
+        _unreadCount = 0;
+        foreach (var n in _notifications) n.IsRead = true;
+        ClosePopovers();
+        Toast.Show("Powiadomienia oznaczono jako przeczytane");
+    }
+
+    private async Task ToggleThemeAsync()
+    {
+        _isDark = !_isDark;
+        try { await JS.InvokeVoidAsync("blazorApp.setTheme", _isDark ? "dark" : "light"); } catch { }
+        Toast.Show(_isDark ? "Włączono ciemny motyw" : "Włączono jasny motyw");
+    }
+
+    private async Task OpenCommandPaletteAsync()
+    {
+        ClosePopovers();
+        if (_commandPalette is not null) await _commandPalette.OpenAsync();
+    }
+
+    private void OpenNewRequest() { CloseMenu(); ClosePopovers(); _wizard?.Open(); }
+    private void OpenNewRequestOfType(string? type) { _wizard?.Open(type); }
+    private Task HandleNavigate(string _) => Task.CompletedTask;
+    private Task HandleOpenDetails(string _) => Task.CompletedTask;
+
+    private async Task RefreshCountsAsync()
+    {
+        _approvalCount = await ApprovalService.GetPendingCountAsync();
+        StateHasChanged();
+    }
+
+    private static string FormatTimeAgo(DateTime utcTime)
+    {
+        var diff = DateTime.UtcNow - utcTime;
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} min temu";
+        if (diff.TotalHours < 24)   return $"{(int)diff.TotalHours} godz. temu";
+        return $"{(int)diff.TotalDays} dni temu";
+    }
+
+    public async ValueTask DisposeAsync() { _objRef?.Dispose(); await Task.CompletedTask; }
+}

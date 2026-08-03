@@ -1,0 +1,225 @@
+@inject IRequestService RequestService
+@inject AppToastService Toast
+
+<div class="drawer-backdrop @(_visible ? "show" : "")" @onclick="Close"></div>
+
+<aside class="drawer @(_visible ? "show" : "")" aria-label="Szczegóły wniosku">
+    @if (_request is not null)
+    {
+        <header class="drawer-header">
+            <div class="drawer-header-text">
+                <div class="drawer-caption">Szczegóły wniosku</div>
+                <div class="drawer-title">@_request.Title</div>
+            </div>
+            <button class="icon-button" type="button" aria-label="Zamknij" @onclick="Close">
+                <svg class="icon"><use href="#i-close" /></svg>
+            </button>
+        </header>
+
+        <div class="drawer-tabs">
+            <button class="drawer-tab @(_activeTab == "overview" ? "active" : "")" type="button"
+                    @onclick='() => _activeTab = "overview"'>
+                Informacje
+            </button>
+            <button class="drawer-tab @(_activeTab == "history" ? "active" : "")" type="button"
+                    @onclick='() => _activeTab = "history"'>
+                Historia
+            </button>
+            <button class="drawer-tab @(_activeTab == "attachments" ? "active" : "")" type="button"
+                    @onclick='() => _activeTab = "attachments"'>
+                Załączniki (@_request.Attachments.Count)
+            </button>
+        </div>
+
+        <div class="drawer-body">
+
+            @* ---- Overview ---- *@
+            @if (_activeTab == "overview")
+            {
+                <div class="detail-code">@_request.Code</div>
+                <div class="detail-title">@_request.Title</div>
+                <div class="detail-meta">Utworzono @_request.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy, HH:mm") · @_request.CreatedByName</div>
+
+                <div class="detail-status">
+                    <StatusBadge Text="@_request.Status.ToLabel()" CssClass="@_request.Status.ToBadgeClass()" />
+                    <StatusBadge Text="@_request.Priority.ToLabel()" CssClass="@_request.Priority.ToBadgeClass()" />
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-field">
+                        <div class="detail-label">Kategoria</div>
+                        <div class="detail-value">@_request.Category</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="detail-label">Realizujący</div>
+                        <div class="detail-value">@(_request.AssigneeName ?? "—")</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="detail-label">Jednostka</div>
+                        <div class="detail-value">@_request.Department</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="detail-label">Termin SLA</div>
+                        <div class="detail-value">@_request.SlaDeadlineLabel</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Postęp SLA</div>
+                <div class="sla-box" style="margin:0">
+                    <div class="sla-row">
+                        <strong>@SlaLabel</strong>
+                        <span>@_request.SlaProgressPercent%</span>
+                    </div>
+                    <div class="progress @SlaProgressClass">
+                        <span style="width:@_request.SlaProgressPercent%"></span>
+                    </div>
+                </div>
+
+                <div class="section-title">Opis wniosku</div>
+                <div class="description-box">@_request.Description</div>
+
+                @if (_dynamicFields.Count > 0)
+                {
+                    <div class="section-title">Dane szczegółowe</div>
+                    <div class="detail-grid" style="margin-top:0">
+                        @foreach (var kv in _dynamicFields)
+                        {
+                            <div class="detail-field">
+                                <div class="detail-label">@kv.Key</div>
+                                <div class="detail-value">@kv.Value</div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (RequestTypeRegistry.All.TryGetValue(_request.TypeKey, out var cfg))
+                {
+                    <div class="section-title">Ścieżka akceptacji</div>
+                    <div class="approval-path">
+                        @for (int i = 0; i < cfg.Approvals.Length; i++)
+                        {
+                            var step = cfg.Approvals[i];
+                            int num = i + 1;
+                            <div class="approval-step">
+                                <span class="approval-number">@num</span>
+                                <div>
+                                    <div class="approval-name">@step.Name</div>
+                                    <div class="approval-description">@step.Description</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            @* ---- History ---- *@
+            @if (_activeTab == "history")
+            {
+                <div class="timeline">
+                    @foreach (var entry in _request.History.OrderBy(h => h.OccurredAt))
+                    {
+                        <div class="timeline-item complete">
+                            <span class="timeline-dot"></span>
+                            <div>
+                                <div class="timeline-title">@entry.Action</div>
+                                <div class="timeline-meta">@entry.ActorName · @entry.OccurredAt.ToLocalTime().ToString("dd.MM.yyyy, HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @* ---- Attachments ---- *@
+            @if (_activeTab == "attachments")
+            {
+                @if (!_request.Attachments.Any())
+                {
+                    <div class="description-box">Do wniosku nie dodano żadnych załączników.</div>
+                }
+                else
+                {
+                    @foreach (var att in _request.Attachments)
+                    {
+                        <div class="detail-field" style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                            <span class="request-icon">
+                                <svg class="icon"><use href="#i-attach" /></svg>
+                            </span>
+                            <div style="min-width:0;flex:1">
+                                <div class="detail-value" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@att.FileName</div>
+                                <div class="detail-label">@FormatSize(att.FileSizeBytes)</div>
+                            </div>
+                            <button class="icon-button" type="button" aria-label="Pobierz @att.FileName"
+                                    @onclick='() => Toast.Show($"Pobieranie pliku: {att.FileName}")'>
+                                <svg class="icon"><use href="#i-download" /></svg>
+                            </button>
+                        </div>
+                    }
+                }
+            }
+        </div>
+
+        <footer class="drawer-footer">
+            <button class="btn" type="button" @onclick="Close">Zamknij</button>
+            <button class="btn primary" type="button" @onclick='() => Toast.Show("Otwarto edycję wniosku")'>Edytuj wniosek</button>
+        </footer>
+    }
+</aside>
+
+@code {
+    private bool _visible;
+    private ItRequest? _request;
+    private string _activeTab = "overview";
+    private Dictionary<string, string> _dynamicFields = [];
+
+    private string SlaLabel => _request?.SlaProgressPercent switch
+    {
+        100 => "Realizacja zakończona",
+        > 80 => "Termin SLA jest zagrożony",
+        _ => "Realizacja zgodna z SLA"
+    };
+
+    private string SlaProgressClass => _request?.SlaProgressPercent is > 80 and < 100 ? "danger" : string.Empty;
+
+    public async Task OpenAsync(int requestId)
+    {
+        _request = await RequestService.GetByIdAsync(requestId);
+        if (_request is not null)
+        {
+            _dynamicFields = ParseDynamic(_request.DynamicFieldsJson);
+            _activeTab = "overview";
+            _visible = true;
+            StateHasChanged();
+        }
+    }
+
+    public async Task OpenByCodeAsync(string code)
+    {
+        _request = await RequestService.GetByCodeAsync(code);
+        if (_request is not null)
+        {
+            _dynamicFields = ParseDynamic(_request.DynamicFieldsJson);
+            _activeTab = "overview";
+            _visible = true;
+            StateHasChanged();
+        }
+    }
+
+    private void Close()
+    {
+        _visible = false;
+        _request = null;
+    }
+
+    private static Dictionary<string, string> ParseDynamic(string json)
+    {
+        try { return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? []; }
+        catch { return []; }
+    }
+
+    private static string FormatSize(long bytes) => bytes switch
+    {
+        >= 1_048_576 => $"{bytes / 1_048_576.0:F1} MB",
+        >= 1_024 => $"{bytes / 1_024.0:F0} KB",
+        _ => $"{bytes} B"
+    };
+}

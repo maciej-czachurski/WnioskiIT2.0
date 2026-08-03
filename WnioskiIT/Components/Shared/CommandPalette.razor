@@ -1,0 +1,112 @@
+@inject AppToastService Toast
+
+@if (_visible)
+{
+    <div class="overlay command-overlay show" @onclick="HandleOverlayClick">
+        <section class="dialog command-dialog" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <div class="command-input">
+                <svg class="icon"><use href="#i-search" /></svg>
+                <input @ref="_inputRef" type="search" placeholder="Szukaj wniosków, usług lub poleceń…"
+                       aria-label="Wyszukiwanie poleceń"
+                       @bind="_search" @bind:event="oninput" />
+                <span class="search-shortcut">Esc</span>
+            </div>
+
+            <div class="command-results">
+                @foreach (var group in FilteredGroups())
+                {
+                    <div class="command-section">@group.Title</div>
+                    @foreach (var item in group.Items)
+                    {
+                        <button class="command-item" type="button" @onclick="() => ExecuteItem(item)">
+                            <svg class="icon"><use href="@item.IconHref" /></svg>
+                            <span>@item.Label</span>
+                            @if (!string.IsNullOrEmpty(item.Shortcut))
+                            {
+                                <small class="command-key">@item.Shortcut</small>
+                            }
+                        </button>
+                    }
+                }
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback<string> OnNavigate { get; set; }
+    [Parameter] public EventCallback<string> OnOpenRequest { get; set; }
+    [Parameter] public EventCallback<string> OnOpenDetails { get; set; }
+    [Parameter] public EventCallback OnToggleTheme { get; set; }
+
+    private bool _visible;
+    private string _search = string.Empty;
+    private ElementReference _inputRef;
+
+    public async Task OpenAsync()
+    {
+        _search = string.Empty;
+        _visible = true;
+        StateHasChanged();
+        await Task.Delay(50);
+        try { await _inputRef.FocusAsync(); } catch { /* ignore */ }
+    }
+
+    public void Close()
+    {
+        _visible = false;
+        StateHasChanged();
+    }
+
+    private void HandleOverlayClick() => Close();
+
+    // -------------------------------------------------------------------------
+
+    private record CommandItem(string Label, string IconHref, string Keywords, string? Shortcut, Func<Task> Action);
+    private record CommandGroup(string Title, List<CommandItem> Items);
+
+    private List<CommandGroup> AllGroups() =>
+    [
+        new("Szybkie działania",
+        [
+            new("Utwórz nowy wniosek", "#i-plus", "nowy wniosek utwórz dodaj", "N",
+                async () => { Close(); await OnOpenRequest.InvokeAsync(null); }),
+            new("Przejdź do moich wniosków", "#i-file", "moje wnioski rejestr lista", null,
+                async () => { Close(); await OnNavigate.InvokeAsync("requests"); }),
+            new("Otwórz katalog usług", "#i-grid", "katalog usługi rodzaje formularze", null,
+                async () => { Close(); await OnNavigate.InvokeAsync("catalog"); }),
+            new("Zmień motyw aplikacji", "#i-moon", "motyw ciemny jasny wygląd", null,
+                async () => { await OnToggleTheme.InvokeAsync(); Close(); }),
+        ]),
+        new("Rodzaje wniosków",
+        [
+            new("Wniosek o zakup", "#i-cart", "zakup sprzęt licencja usługa", null,
+                async () => { Close(); await OnOpenRequest.InvokeAsync("purchase"); }),
+            new("Wniosek o nadanie uprawnień", "#i-key", "uprawnienia dostęp system rola", null,
+                async () => { Close(); await OnOpenRequest.InvokeAsync("permissions"); }),
+            new("Wniosek o pracę zdalną", "#i-house", "praca zdalna vpn poza biurem", null,
+                async () => { Close(); await OnOpenRequest.InvokeAsync("remote-work"); }),
+            new("Wniosek o backup", "#i-database", "backup kopia zapasowa odtworzenie", null,
+                async () => { Close(); await OnOpenRequest.InvokeAsync("backup"); }),
+            new("Wniosek o maszynę wirtualną", "#i-server", "maszyna wirtualna vm serwer", null,
+                async () => { Close(); await OnOpenRequest.InvokeAsync("virtual-machine"); }),
+            new("Udostępnianie plików poza spółkę", "#i-share", "udostępnianie plików poza spółkę zewnętrzne", null,
+                async () => { Close(); await OnOpenRequest.InvokeAsync("external-sharing"); }),
+        ])
+    ];
+
+    private IEnumerable<CommandGroup> FilteredGroups()
+    {
+        var phrase = _search.ToLowerInvariant().Trim();
+        foreach (var group in AllGroups())
+        {
+            var items = group.Items
+                .Where(i => string.IsNullOrEmpty(phrase) || i.Keywords.Contains(phrase) || i.Label.ToLowerInvariant().Contains(phrase))
+                .ToList();
+            if (items.Count > 0)
+                yield return new CommandGroup(group.Title, items);
+        }
+    }
+
+    private async Task ExecuteItem(CommandItem item) => await item.Action();
+}

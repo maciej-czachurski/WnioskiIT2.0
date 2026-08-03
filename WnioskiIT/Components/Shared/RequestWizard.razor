@@ -1,0 +1,534 @@
+@inject IRequestService RequestService
+@inject AppToastService Toast
+
+@if (_visible)
+{
+    <div class="overlay show" id="requestOverlay" @onclick="HandleOverlayClick">
+        <section class="dialog" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+
+            <header class="dialog-header">
+                <div class="dialog-icon">
+                    <svg class="icon"><use href="#i-plus" /></svg>
+                </div>
+                <div class="dialog-heading">
+                    <div class="dialog-title">Nowy wniosek IT</div>
+                    <div class="dialog-subtitle">Formularz automatycznie dopasuje pola i ścieżkę akceptacji</div>
+                </div>
+                <button class="icon-button" type="button" aria-label="Zamknij" @onclick="Close">
+                    <svg class="icon"><use href="#i-close" /></svg>
+                </button>
+            </header>
+
+            <div class="dialog-body">
+                <!-- Step indicators -->
+                <div class="steps">
+                    <div class="step @StepClass(1)" data-step-indicator="1">
+                        <div class="step-circle">@(Step > 1 ? "✓" : "1")</div>
+                        Rodzaj sprawy
+                    </div>
+                    <div class="step @StepClass(2)" data-step-indicator="2">
+                        <div class="step-circle">@(Step > 2 ? "✓" : "2")</div>
+                        Szczegóły
+                    </div>
+                    <div class="step @StepClass(3)" data-step-indicator="3">
+                        <div class="step-circle">3</div>
+                        Podsumowanie
+                    </div>
+                </div>
+
+                <!-- Step 1: Request type -->
+                @if (Step == 1)
+                {
+                    <h3 class="section-heading">Wybierz rodzaj wniosku</h3>
+                    <div class="form-grid">
+                        <div class="form-field full">
+                            <label class="form-label" for="wiz-type">Rodzaj wniosku <span class="required">*</span></label>
+                            <select class="select" id="wiz-type" @bind="_typeKey" @bind:after="OnTypeChanged">
+                                @foreach (var kv in RequestTypeRegistry.All)
+                                {
+                                    <option value="@kv.Key">@kv.Value.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="wiz-priority">Priorytet</label>
+                            <select class="select" id="wiz-priority" @bind="_priority">
+                                <option value="Standardowy">Standardowy</option>
+                                <option value="Wysoki">Wysoki</option>
+                                <option value="Krytyczny">Krytyczny</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="wiz-dept">Jednostka organizacyjna</label>
+                            <select class="select" id="wiz-dept" @bind="_department">
+                                <option>Wydział W2</option>
+                                <option>Wydział W1</option>
+                                <option>Dział Jakości</option>
+                                <option>Dział Serwisu</option>
+                                <option>Dział Finansowy</option>
+                                <option>Dział Handlowy</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    @if (CurrentConfig is not null)
+                    {
+                        <div class="message">
+                            <svg class="icon"><use href="#i-info" /></svg>
+                            <span>@CurrentConfig.Meta</span>
+                        </div>
+
+                        <div class="dynamic-section">
+                            <h3 class="section-heading">Ścieżka akceptacji</h3>
+                            <div class="approval-path">
+                                @for (int i = 0; i < CurrentConfig.Approvals.Length; i++)
+                                {
+                                    var step = CurrentConfig.Approvals[i];
+                                    int num = i + 1;
+                                    <div class="approval-step">
+                                        <span class="approval-number">@num</span>
+                                        <div>
+                                            <div class="approval-name">@step.Name</div>
+                                            <div class="approval-description">@step.Description</div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- Step 2: Details -->
+                @if (Step == 2)
+                {
+                    <h3 class="section-heading">Podstawowe informacje</h3>
+                    <div class="form-grid">
+                        <div class="form-field full">
+                            <label class="form-label" for="wiz-title">Tytuł <span class="required">*</span></label>
+                            <input class="input" id="wiz-title" type="text" maxlength="200"
+                                   placeholder="@TitlePlaceholder"
+                                   @bind="_title" />
+                        </div>
+                        <div class="form-field full">
+                            <label class="form-label" for="wiz-desc">Opis i uzasadnienie <span class="required">*</span></label>
+                            <textarea class="textarea" id="wiz-desc" maxlength="5000"
+                                      placeholder="@DescPlaceholder"
+                                      @bind="_description"></textarea>
+                            <div class="field-hint">Nie wpisuj haseł ani danych poufnych. Dokładny opis przyspieszy realizację.</div>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="wiz-date">Oczekiwany termin</label>
+                            <input class="input" id="wiz-date" type="date" @bind="_neededDate" />
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="wiz-cc">Centrum kosztowe</label>
+                            <input class="input" id="wiz-cc" type="text" @bind="_costCenter" placeholder="Np. W2-PROD-100" />
+                        </div>
+                    </div>
+
+                    @if (CurrentConfig is not null)
+                    {
+                        <div class="dynamic-section">
+                            <h3 class="section-heading">@CurrentConfig.DynamicTitle</h3>
+                            <div class="dynamic-fields">
+                                @foreach (var field in CurrentConfig.Fields)
+                                {
+                                    <div class="form-field @(field.Full ? "full" : "")">
+                                        @if (field.Type != "checkbox")
+                                        {
+                                            <label class="form-label" for="dyn-@field.Id">
+                                                @field.Label
+                                                @if (field.Required) { <span class="required">*</span> }
+                                            </label>
+                                        }
+
+                                        @if (field.Type == "select")
+                                        {
+                                            <select class="select" id="dyn-@field.Id"
+                                                    value="@GetDynValue(field.Id)"
+                                                    @onchange="e => SetDynValue(field.Id, field.Label, e.Value?.ToString() ?? string.Empty)">
+                                                @foreach (var opt in field.Options ?? [])
+                                                {
+                                                    <option>@opt</option>
+                                                }
+                                            </select>
+                                        }
+                                        else if (field.Type == "textarea")
+                                        {
+                                            <textarea class="textarea" id="dyn-@field.Id"
+                                                      placeholder="@(field.Placeholder ?? string.Empty)"
+                                                      @bind="_dynValues[field.Id]"
+                                                      @bind:after="() => SyncDynLabel(field.Id, field.Label)"></textarea>
+                                        }
+                                        else if (field.Type == "checkbox")
+                                        {
+                                            <label class="checkbox-row">
+                                                <input type="checkbox" id="dyn-@field.Id"
+                                                       checked="@(GetDynValue(field.Id) == "Tak")"
+                                                       @onchange="e => SetDynCheckbox(field.Id, field.Label, e.Value)" />
+                                                <span>@field.Label</span>
+                                            </label>
+                                        }
+                                        else
+                                        {
+                                            <input class="input" id="dyn-@field.Id" type="@field.Type"
+                                                   placeholder="@(field.Placeholder ?? string.Empty)"
+                                                   min="@field.Min" max="@field.Max" step="@field.Step"
+                                                   @bind="_dynValues[field.Id]"
+                                                   @bind:after="() => SyncDynLabel(field.Id, field.Label)" />
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(field.Hint))
+                                        {
+                                            <div class="field-hint">@field.Hint</div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="dynamic-section">
+                        <h3 class="section-heading">Załączniki</h3>
+                        <label class="dropzone">
+                            <InputFile multiple OnChange="HandleFiles" style="position:absolute;inset:0;width:100%;opacity:0;cursor:pointer" />
+                            <svg class="icon"><use href="#i-attach" /></svg>
+                            <span>Przeciągnij pliki lub kliknij, aby dodać załączniki</span>
+                        </label>
+                        <div class="field-hint">Maksymalnie 10 plików.</div>
+                        <div class="file-list">
+                            @for (int i = 0; i < _files.Count; i++)
+                            {
+                                int idx = i;
+                                <span class="file-chip">
+                                    <svg class="icon"><use href="#i-attach" /></svg>
+                                    <span title="@_files[idx].Name">@_files[idx].Name</span>
+                                    <button class="file-remove" type="button" aria-label="Usuń @_files[idx].Name"
+                                            @onclick="() => _files.RemoveAt(idx)">×</button>
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Step 3: Summary -->
+                @if (Step == 3 && CurrentConfig is not null)
+                {
+                    <h3 class="section-heading">Podsumowanie wniosku</h3>
+                    <div class="summary">
+                        <SummaryItem Label="Rodzaj" Value="@CurrentConfig.Label" />
+                        <SummaryItem Label="Priorytet" Value="@_priority" />
+                        <SummaryItem Label="Jednostka" Value="@_department" />
+                        <SummaryItem Label="Oczekiwany termin" Value="@(_neededDate.HasValue ? _neededDate.Value.ToString("dd.MM.yyyy") : "Nie określono")" />
+                        <SummaryItem Label="Centrum kosztowe" Value="@(string.IsNullOrWhiteSpace(_costCenter) ? "Nie określono" : _costCenter)" />
+                        <SummaryItem Label="Załączniki" Value="@(_files.Count > 0 ? string.Join(", ", _files.Select(f => f.Name)) : "Brak")" />
+                        <SummaryItem Label="Tytuł" Value="@_title" Full="true" />
+                        <SummaryItem Label="Opis i uzasadnienie" Value="@_description" Full="true" />
+                    </div>
+
+                    @if (_dynLabels.Count > 0)
+                    {
+                        <div class="dynamic-section">
+                            <h3 class="section-heading">Dane szczegółowe</h3>
+                            <div class="summary-dynamic">
+                                @foreach (var kv in _dynLabels)
+                                {
+                                    <div class="summary-item">
+                                        <div class="summary-label">@kv.Key</div>
+                                        <div class="summary-value">@kv.Value</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="dynamic-section">
+                        <h3 class="section-heading">Ścieżka akceptacji</h3>
+                        <div class="approval-path">
+                            @for (int i = 0; i < CurrentConfig.Approvals.Length; i++)
+                            {
+                                var appr = CurrentConfig.Approvals[i];
+                                int num = i + 1;
+                                <div class="approval-step">
+                                    <span class="approval-number">@num</span>
+                                    <div>
+                                        <div class="approval-name">@appr.Name</div>
+                                        <div class="approval-description">@appr.Description</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="message">
+                        <svg class="icon"><use href="#i-shield" /></svg>
+                        <span>Po wysłaniu wniosek otrzyma numer i zostanie skierowany do właściwej grupy IT oraz osób akceptujących.</span>
+                    </div>
+                }
+            </div>
+
+            <footer class="dialog-footer">
+                <button class="btn" type="button" @onclick="Close">Anuluj</button>
+                <button class="btn" type="button" @onclick="SaveDraft">Zapisz wersję roboczą</button>
+                <div class="spacer"></div>
+                @if (Step > 1)
+                {
+                    <button class="btn" type="button" @onclick="PrevStep">Wstecz</button>
+                }
+                @if (Step < 3)
+                {
+                    <button class="btn primary" type="button" @onclick="NextStep">Dalej</button>
+                }
+                else
+                {
+                    <button class="btn primary" type="button" @onclick="SubmitAsync" disabled="@_submitting">
+                        @(_submitting ? "Wysyłanie…" : "Wyślij wniosek")
+                    </button>
+                }
+            </footer>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback OnRequestCreated { get; set; }
+
+    private const string TakValue = "Tak";
+    private const string NieValue = "Nie";
+
+    private bool _visible;
+    private bool _submitting;
+    private int Step = 1;
+
+    private string _typeKey = "purchase";
+    private string _priority = "Standardowy";
+    private string _department = "Wydział W2";
+    private string _title = string.Empty;
+    private string _description = string.Empty;
+    private DateTime? _neededDate;
+    private string _costCenter = "W2-PROD-100";
+
+    private List<IBrowserFile> _files = [];
+
+    // Field id → raw value  (used for binding)
+    private Dictionary<string, string> _dynValues = [];
+    // Field label → display value (used for summary / persistence)
+    private Dictionary<string, string> _dynLabels = [];
+
+    private RequestTypeConfig? CurrentConfig =>
+        RequestTypeRegistry.All.TryGetValue(_typeKey, out var c) ? c : null;
+
+    // -------------------------------------------------------------------------
+
+    public void Open(string? typeKey = null)
+    {
+        Step = 1;
+        _typeKey = typeKey ?? "purchase";
+        _priority = "Standardowy";
+        _department = "Wydział W2";
+        _title = string.Empty;
+        _description = string.Empty;
+        _neededDate = DateTime.Today.AddDays(7);
+        _costCenter = "W2-PROD-100";
+        _files = [];
+        InitDynFields();
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private void InitDynFields()
+    {
+        _dynValues = [];
+        _dynLabels = [];
+        if (CurrentConfig is null) return;
+
+        foreach (var f in CurrentConfig.Fields)
+        {
+            _dynValues[f.Id] = f.DefaultValue ?? (f.Options?.FirstOrDefault() ?? string.Empty);
+            if (f.Type != "checkbox")
+                _dynLabels[f.Label] = _dynValues[f.Id];
+            else
+                _dynLabels[f.Label] = "Nie";
+        }
+    }
+
+    private void OnTypeChanged()
+    {
+        InitDynFields();
+    }
+
+    private string GetDynValue(string id) =>
+        _dynValues.TryGetValue(id, out var v) ? v : string.Empty;
+
+    private void SetDynValue(string id, string label, string value)
+    {
+        _dynValues[id] = value;
+        _dynLabels[label] = value;
+    }
+
+    private void SetDynCheckbox(string id, string label, object? value)
+    {
+        var boolVal = value is bool b ? b : bool.TryParse(value?.ToString(), out var parsed) && parsed;
+        SetDynValue(id, label, boolVal ? "Tak" : "Nie");
+    }
+
+    private void SyncDynLabel(string id, string label)
+    {
+        if (_dynValues.TryGetValue(id, out var v))
+            _dynLabels[label] = v;
+    }
+
+    private string TitlePlaceholder => _typeKey switch
+    {
+        "purchase" => "Np. Zakup laptopa dla nowego pracownika",
+        "permissions" => "Np. Nadanie dostępu do systemu IFS",
+        "remote-work" => "Np. Praca zdalna w sierpniu 2026",
+        "backup" => "Np. Backup bazy danych projektu 39WE",
+        "virtual-machine" => "Np. Maszyna testowa dla nowej aplikacji",
+        "external-sharing" => "Np. Udostępnienie dokumentacji partnerowi",
+        _ => "Krótko opisz przedmiot wniosku"
+    };
+
+    private string DescPlaceholder => _typeKey switch
+    {
+        "purchase" => "Opisz przeznaczenie zakupu i uzasadnij potrzebę biznesową.",
+        "permissions" => "Opisz zadania wymagające dostępu i uzasadnij wskazany zakres uprawnień.",
+        "remote-work" => "Opisz organizację pracy oraz zasoby potrzebne poza biurem.",
+        "backup" => "Opisz cel wykonania kopii lub odtworzenia danych.",
+        "virtual-machine" => "Opisz przeznaczenie środowiska i przewidywany sposób wykorzystania.",
+        "external-sharing" => "Opisz cel przekazania plików oraz charakter współpracy z odbiorcą.",
+        _ => "Opisz cel i uzasadnienie wniosku."
+    };
+
+    private string StepClass(int n) => n == Step ? "active" : n < Step ? "complete" : string.Empty;
+
+    // -------------------------------------------------------------------------
+
+    private bool ValidateStep1()
+    {
+        if (!RequestTypeRegistry.All.ContainsKey(_typeKey))
+        {
+            Toast.Show("Wybierz prawidłowy rodzaj wniosku");
+            return false;
+        }
+        return true;
+    }
+
+    private bool ValidateStep2()
+    {
+        if (_title.Trim().Length < 5)
+        {
+            Toast.Show("Tytuł powinien zawierać co najmniej 5 znaków");
+            return false;
+        }
+        if (_description.Trim().Length < 10)
+        {
+            Toast.Show("Opis powinien zawierać co najmniej 10 znaków");
+            return false;
+        }
+
+        if (CurrentConfig is not null)
+        {
+            foreach (var f in CurrentConfig.Fields.Where(f => f.Required))
+            {
+                var val = GetDynValue(f.Id);
+                if (string.IsNullOrWhiteSpace(val))
+                {
+                    Toast.Show($"Uzupełnij pole: {f.Label}");
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private void NextStep()
+    {
+        if (Step == 1 && !ValidateStep1()) return;
+        if (Step == 2 && !ValidateStep2()) return;
+        Step = Math.Min(3, Step + 1);
+    }
+
+    private void PrevStep() => Step = Math.Max(1, Step - 1);
+
+    // -------------------------------------------------------------------------
+
+    private void HandleFiles(InputFileChangeEventArgs e)
+    {
+        var incoming = e.GetMultipleFiles(10).ToList();
+        foreach (var f in incoming)
+        {
+            if (_files.Count >= 10) break;
+            if (!_files.Any(x => x.Name == f.Name))
+                _files.Add(f);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+
+    private void SaveDraft()
+    {
+        Toast.Show("Wersja robocza została zapisana");
+        Close();
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_submitting) return;
+        _submitting = true;
+
+        try
+        {
+            var cfg = CurrentConfig!;
+            var dynamicJson = System.Text.Json.JsonSerializer.Serialize(_dynLabels);
+
+            var request = new ItRequest
+            {
+                TypeKey = _typeKey,
+                Title = _title.Trim(),
+                Description = _description.Trim(),
+                Category = cfg.Category,
+                CreatedByName = "Jan Kowalski",
+                AssigneeName = cfg.DefaultAssignee,
+                Department = _department,
+                CostCenter = _costCenter.Trim(),
+                NeededByDate = _neededDate,
+                Status = RequestStatus.Nowy,
+                Priority = _priority switch
+                {
+                    "Wysoki" => Priority.Wysoki,
+                    "Krytyczny" => Priority.Krytyczny,
+                    _ => Priority.Standardowy
+                },
+                SlaProgressPercent = 5,
+                SlaDeadlineLabel = cfg.Sla,
+                DynamicFieldsJson = dynamicJson,
+                Attachments = _files.Select(f => new RequestAttachment
+                {
+                    FileName = f.Name,
+                    FileSizeBytes = f.Size,
+                    ContentType = f.ContentType,
+                    UploadedBy = "Jan Kowalski"
+                }).ToList()
+            };
+
+            var created = await RequestService.CreateAsync(request);
+            Close();
+            Toast.Show($"Wniosek {created.Code} został wysłany");
+            await OnRequestCreated.InvokeAsync();
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private void HandleOverlayClick() => Close();
+
+    private void Close()
+    {
+        _visible = false;
+        Step = 1;
+        _files = [];
+    }
+}

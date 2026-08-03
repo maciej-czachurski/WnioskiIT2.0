@@ -1,0 +1,279 @@
+@page "/"
+@rendermode InteractiveServer
+@inject IRequestService RequestService
+@inject IApprovalService ApprovalService
+@inject AppToastService Toast
+
+<section class="page-header">
+  <div>
+    <div class="breadcrumbs">
+      <span>wnioskiIT</span>
+      <span>/</span>
+      <span class="current">Pulpit</span>
+    </div>
+    <h1>Dzień dobry, Jan</h1>
+    <p class="page-description">Złóż nowy wniosek IT, sprawdź postęp realizacji i zarządzaj akceptacjami.</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn" type="button" @onclick="RefreshAsync">
+      <svg class="icon"><use href="#i-refresh"/></svg>
+      Odśwież
+    </button>
+    <button class="btn primary" type="button" @onclick="OpenNewRequest">
+      <svg class="icon"><use href="#i-plus"/></svg>
+      Nowy wniosek
+    </button>
+  </div>
+</section>
+
+<!-- Metrics -->
+<section class="metrics" aria-label="Podsumowanie wniosków">
+  <article class="metric">
+    <div class="metric-top">
+      <span>Wszystkie wnioski</span>
+      <span class="metric-icon"><svg class="icon"><use href="#i-file"/></svg></span>
+    </div>
+    <div class="metric-value">@_metrics.Total</div>
+    <div class="metric-caption">↑ 2 w tym miesiącu</div>
+  </article>
+
+  <article class="metric warning">
+    <div class="metric-top">
+      <span>W realizacji</span>
+      <span class="metric-icon"><svg class="icon"><use href="#i-clock"/></svg></span>
+    </div>
+    <div class="metric-value">@_metrics.InProgress</div>
+    <div class="metric-caption">2 zgodne z SLA · 1 zagrożony</div>
+  </article>
+
+  <article class="metric danger">
+    <div class="metric-top">
+      <span>Wymagają działania</span>
+      <span class="metric-icon"><svg class="icon"><use href="#i-warning"/></svg></span>
+    </div>
+    <div class="metric-value">@_metrics.NeedsAction</div>
+    <div class="metric-caption">Uzupełnij informacje</div>
+  </article>
+
+  <article class="metric success">
+    <div class="metric-top">
+      <span>Zakończone</span>
+      <span class="metric-icon"><svg class="icon"><use href="#i-check"/></svg></span>
+    </div>
+    <div class="metric-value">@_metrics.Completed</div>
+    <div class="metric-caption">96% rozwiązanych w SLA</div>
+  </article>
+</section>
+
+<!-- Dashboard grid: service catalog + activity -->
+<section class="dashboard-grid">
+
+  <!-- Service catalog -->
+  <article class="card" id="catalog">
+    <div class="card-header">
+      <div class="card-header-text">
+        <h2 class="card-title">Katalog usług IT</h2>
+        <div class="card-description">Wybierz rodzaj sprawy, aby uruchomić właściwy formularz i ścieżkę akceptacji</div>
+      </div>
+      <span class="badge neutral">6 usług</span>
+    </div>
+    <div class="services">
+      @foreach (var kv in RequestTypeRegistry.All)
+      {
+        var typeKey = kv.Key;
+        var cfg = kv.Value;
+        <button class="service" type="button" @onclick="() => OpenRequestOfType(typeKey)">
+          <span class="service-icon">
+            <svg class="icon"><use href="#i-@cfg.IconKey"/></svg>
+          </span>
+          <span class="service-body">
+            <span class="service-name">@cfg.Label</span>
+            <span class="service-description">@GetServiceDescription(typeKey)</span>
+            <span class="service-meta">SLA: @cfg.Sla · @GetApprovalShortDesc(cfg)</span>
+          </span>
+          <svg class="icon service-arrow"><use href="#i-chevron"/></svg>
+        </button>
+      }
+    </div>
+  </article>
+
+  <!-- Activity + SLA -->
+  <article class="card">
+    <div class="card-header">
+      <div class="card-header-text">
+        <h2 class="card-title">Ostatnia aktywność</h2>
+        <div class="card-description">Zmiany dotyczące Twoich spraw</div>
+      </div>
+    </div>
+    <div class="activity-list">
+      @foreach (var req in _recentRequests.Take(3))
+      {
+        <div class="activity">
+          <span class="activity-dot @GetActivityDotClass(req.Status)"></span>
+          <div>
+            <div class="activity-title">@GetActivityTitle(req)</div>
+            <div class="activity-meta">@req.Code · @FormatTimeAgo(req.CreatedAt)</div>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="sla-box">
+      <div class="sla-row">
+        <strong>Ogólna realizacja SLA</strong>
+        <span>96%</span>
+      </div>
+      <div class="progress">
+        <span style="width:96%"></span>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- Bottom grid: recent requests + approvals -->
+<section class="bottom-grid">
+
+  <article class="card">
+    <div class="card-header">
+      <div class="card-header-text">
+        <h2 class="card-title">Ostatnie wnioski</h2>
+        <div class="card-description">Najnowsze sprawy i ich aktualne statusy</div>
+      </div>
+      <a class="btn subtle" href="moje-wnioski">
+        Zobacz wszystkie
+        <svg class="icon"><use href="#i-chevron"/></svg>
+      </a>
+    </div>
+    <div class="request-list">
+      @foreach (var req in _recentRequests.Take(3))
+      {
+        <div class="request-row" tabindex="0" @onclick="() => OpenDetails(req.Id)"
+             @onkeydown="@(async e => { if (e.Key == "Enter") await OpenDetails(req.Id); })">
+          <span class="request-icon">
+            <svg class="icon"><use href="#i-@(RequestTypeRegistry.Get(req.TypeKey).IconKey)"/></svg>
+          </span>
+          <div class="request-body">
+            <div class="request-title">@req.Title</div>
+            <div class="request-meta">@req.Code · @req.Category</div>
+          </div>
+          <StatusBadge Text="@req.Status.ToLabel()" CssClass="@req.Status.ToBadgeClass()" />
+        </div>
+      }
+    </div>
+  </article>
+
+  <!-- Approvals -->
+  <article class="card" id="approvals">
+    <div class="card-header">
+      <div class="card-header-text">
+        <h2 class="card-title">Oczekujące akceptacje</h2>
+        <div class="card-description">Wnioski wymagające Twojej decyzji</div>
+      </div>
+      <span class="badge warning">@_pendingApprovals.Count oczekujące</span>
+    </div>
+    <div class="approval-list">
+      @if (!_pendingApprovals.Any())
+      {
+        <div class="description-box" style="margin:14px 0">
+          Brak wniosków oczekujących na Twoją akceptację.
+        </div>
+      }
+      else
+      {
+        @foreach (var appr in _pendingApprovals)
+        {
+          var apprId = appr.Id;
+          <div class="approval-row">
+            <span class="approval-icon">
+              <svg class="icon"><use href="#i-@(appr.IconKey == "permissions" ? "key" : "cart")"/></svg>
+            </span>
+            <div class="approval-body">
+              <div class="approval-title">@appr.Title</div>
+              <div class="approval-meta">@appr.SubTitle</div>
+            </div>
+            <button class="btn primary" type="button" @onclick="() => ApproveAsync(apprId)">Akceptuj</button>
+          </div>
+        }
+      }
+    </div>
+  </article>
+</section>
+
+<RequestDetailsDrawer @ref="_drawer" />
+
+@code {
+    private DashboardMetrics _metrics = new(0, 0, 0, 0);
+    private List<ItRequest> _recentRequests = [];
+    private List<PendingApproval> _pendingApprovals = [];
+    private RequestDetailsDrawer? _drawer;
+
+    [CascadingParameter] private MainLayout? Layout { get; set; }
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _metrics = await RequestService.GetDashboardMetricsAsync();
+        _recentRequests = (await RequestService.GetAllAsync()).Take(5).ToList();
+        _pendingApprovals = await ApprovalService.GetPendingAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        await LoadAsync();
+        Toast.Show("Dane zostały odświeżone");
+    }
+
+    private async Task ApproveAsync(int id)
+    {
+        await ApprovalService.ApproveAsync(id);
+        _pendingApprovals = await ApprovalService.GetPendingAsync();
+        Toast.Show("Wniosek został zaakceptowany");
+    }
+
+    private async Task OpenDetails(int id)
+    {
+        if (_drawer is not null) await _drawer.OpenAsync(id);
+    }
+
+    private void OpenNewRequest() =>
+        ((MainLayout?)Layout)?.GetType().GetMethod("OpenNewRequest")?.Invoke(Layout, null);
+
+    private void OpenRequestOfType(string typeKey) { /* handled via wizard event in layout */ }
+
+    private static string GetServiceDescription(string key) => key switch
+    {
+        "purchase" => "Zakup sprzętu, oprogramowania, licencji lub usługi IT",
+        "permissions" => "Nadanie, zmiana lub odebranie dostępu do systemu",
+        "remote-work" => "Dostęp VPN i przygotowanie środowiska do pracy poza biurem",
+        "backup" => "Utworzenie, zmiana albo odtworzenie kopii zapasowej",
+        "virtual-machine" => "Nowa maszyna VM, zmiana parametrów albo likwidacja środowiska",
+        "external-sharing" => "Zgoda na bezpieczne przekazanie plików podmiotowi zewnętrznemu",
+        _ => string.Empty
+    };
+
+    private static string GetApprovalShortDesc(RequestTypeConfig cfg) =>
+        cfg.Approvals.Length > 0 ? cfg.Approvals[0].Name.ToLower() : "akceptacja";
+
+    private static string GetActivityDotClass(RequestStatus s) => s switch
+    {
+        RequestStatus.Zakonczony => "success",
+        RequestStatus.DoUzupelnienia => "warning",
+        _ => string.Empty
+    };
+
+    private static string GetActivityTitle(ItRequest r) => r.Status switch
+    {
+        RequestStatus.Zakonczony => $"{r.Code} został zakończony",
+        RequestStatus.DoUzupelnienia => "Wymagane uzupełnienie danych",
+        RequestStatus.WRealizacji => "Przydzielono osobę realizującą",
+        _ => $"{r.Code} — {r.Status.ToLabel()}"
+    };
+
+    private static string FormatTimeAgo(DateTime utcTime)
+    {
+        var diff = DateTime.UtcNow - utcTime;
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} min temu";
+        if (diff.TotalHours < 24)   return $"{(int)diff.TotalHours} godz. temu";
+        return $"{(int)diff.TotalDays} dni temu";
+    }
+}
