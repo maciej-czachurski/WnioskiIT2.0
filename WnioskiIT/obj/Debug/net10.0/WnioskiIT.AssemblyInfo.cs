@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WnioskiIT")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9cf3ec8bdc5f62fec93f03e9a207ca48454a2dc5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c83dc4598008478e9ac9e426c56abd813a8f9b35")]
 [assembly: System.Reflection.AssemblyProductAttribute("WnioskiIT")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WnioskiIT")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
