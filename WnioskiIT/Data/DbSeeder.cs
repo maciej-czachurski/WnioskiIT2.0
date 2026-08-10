@@ -179,10 +179,14 @@ public static class DbSeeder
         };
 
         db.Requests.AddRange(requests);
+        await db.SaveChangesAsync();
+
+        var req125 = await db.Requests.FirstAsync(r => r.Code == "WIT-2026-0125");
+        var req128 = await db.Requests.FirstAsync(r => r.Code == "WIT-2026-0128");
 
         db.PendingApprovals.AddRange(
-            new PendingApproval { ItRequestId = 0, Title = "Zakup laptopa dla konstruktora", SubTitle = "Anna Nowak · szacowany koszt 6 500 zł", IconKey = "purchase" },
-            new PendingApproval { ItRequestId = 0, Title = "Dostęp administratora do IFS", SubTitle = "Piotr Kowal · uprawnienie podwyższone", IconKey = "permissions" }
+            new PendingApproval { ItRequestId = req125.Id, Title = "Zakup laptopa dla konstruktora", SubTitle = "Anna Nowak · szacowany koszt 6 500 zł", IconKey = "purchase" },
+            new PendingApproval { ItRequestId = req128.Id, Title = "Dostęp administratora do IFS", SubTitle = "Piotr Kowal · uprawnienie podwyższone", IconKey = "permissions" }
         );
 
         db.Notifications.AddRange(
@@ -190,14 +194,6 @@ public static class DbSeeder
             new AppNotification { Title = "WIT-2026-0128 został zakończony", Text = "Uprawnienia do systemu IFS zostały nadane.", CreatedAt = DateTime.UtcNow.AddMinutes(-18) }
         );
 
-        await db.SaveChangesAsync();
-
-        // Fix pending approvals to point to a real request
-        var req131 = await db.Requests.FirstAsync(r => r.Code == "WIT-2026-0131");
-        var req128 = await db.Requests.FirstAsync(r => r.Code == "WIT-2026-0128");
-        var approvals = await db.PendingApprovals.ToListAsync();
-        approvals[0].ItRequestId = req128.Id;
-        approvals[1].ItRequestId = req128.Id;
         await db.SaveChangesAsync();
     }
 }
