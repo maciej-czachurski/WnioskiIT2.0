@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components;
 using WnioskiIT.Components;
@@ -19,7 +20,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (useSqliteFallback)
     {
-        var sqliteDirectory = Path.GetDirectoryName(sqliteConnection["Data Source=".Length..]);
+        var sqliteDirectory = Path.GetDirectoryName(new SqliteConnectionStringBuilder(sqliteConnection).DataSource);
         if (!string.IsNullOrWhiteSpace(sqliteDirectory))
         {
             Directory.CreateDirectory(sqliteDirectory);
