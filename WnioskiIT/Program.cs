@@ -11,8 +11,9 @@ var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnec
 var useSqliteFallback = string.IsNullOrWhiteSpace(defaultConnection)
     || (!OperatingSystem.IsWindows() && defaultConnection.Contains("(localdb)", StringComparison.OrdinalIgnoreCase));
 
+var sqliteDataDirectory = Path.Combine(Path.GetTempPath(), "WnioskiIT");
 var sqliteConnection = builder.Configuration.GetConnectionString("SqliteConnection")
-    ?? $"Data Source={Path.Combine(builder.Environment.ContentRootPath, "App_Data", "wnioskiit.db")}";
+    ?? $"Data Source={Path.Combine(sqliteDataDirectory, "wnioskiit.db")}";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
